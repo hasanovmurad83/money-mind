@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Language } from '../App';
-import { ChevronLeft, AlertCircle, Send, MessageSquare, CheckCircle } from 'lucide-react';
+import { ChevronLeft, AlertCircle, Send, MessageSquare, CheckCircle, Bot, User as UserIcon } from 'lucide-react';
 import { toast } from 'sonner@2.0.3';
 
 interface SupportProps {
@@ -24,6 +24,9 @@ const translations = {
     messages: 'Mesajlar',
     noMessages: 'Hələ mesaj yoxdur',
     success: 'Reportınız göndərildi!',
+    aiResponse: 'AI Cavab',
+    you: 'Siz',
+    aiAssistant: 'AI Köməkçi',
   },
   en: {
     support: 'Support',
@@ -40,6 +43,9 @@ const translations = {
     messages: 'Messages',
     noMessages: 'No messages yet',
     success: 'Your report has been submitted!',
+    aiResponse: 'AI Response',
+    you: 'You',
+    aiAssistant: 'AI Assistant',
   },
   ru: {
     support: 'Поддержка',
@@ -56,6 +62,9 @@ const translations = {
     messages: 'Сообщения',
     noMessages: 'Пока нет сообщений',
     success: 'Ваш отчет отправлен!',
+    aiResponse: 'Ответ AI',
+    you: 'Вы',
+    aiAssistant: 'AI Ассистент',
   },
   tr: {
     support: 'Destek',
@@ -72,6 +81,9 @@ const translations = {
     messages: 'Mesajlar',
     noMessages: 'Henüz mesaj yok',
     success: 'Raporunuz gönderildi!',
+    aiResponse: 'AI Yanıt',
+    you: 'Siz',
+    aiAssistant: 'AI Asistan',
   },
   de: {
     support: 'Unterstützung',
@@ -88,6 +100,9 @@ const translations = {
     messages: 'Nachrichten',
     noMessages: 'Noch keine Nachrichten',
     success: 'Ihr Bericht wurde gesendet!',
+    aiResponse: 'AI-Antwort',
+    you: 'Sie',
+    aiAssistant: 'AI-Assistent',
   },
   fr: {
     support: 'Support',
@@ -104,6 +119,9 @@ const translations = {
     messages: 'Messages',
     noMessages: 'Pas encore de messages',
     success: 'Votre rapport a été envoyé!',
+    aiResponse: 'Réponse IA',
+    you: 'Vous',
+    aiAssistant: 'Assistant IA',
   },
   es: {
     support: 'Soporte',
@@ -120,6 +138,9 @@ const translations = {
     messages: 'Mensajes',
     noMessages: 'Aún no hay mensajes',
     success: '¡Su informe ha sido enviado!',
+    aiResponse: 'Respuesta IA',
+    you: 'Usted',
+    aiAssistant: 'Asistente IA',
   },
   ar: {
     support: 'الدعم',
@@ -136,8 +157,17 @@ const translations = {
     messages: 'الرسائل',
     noMessages: 'لا توجد رسائل بعد',
     success: 'تم إرسال تقريرك!',
+    aiResponse: 'رد AI',
+    you: 'أنت',
+    aiAssistant: 'مساعد AI',
   },
 };
+
+interface AIReply {
+  id: string;
+  text: string;
+  timestamp: string;
+}
 
 interface Message {
   id: number;
@@ -145,7 +175,39 @@ interface Message {
   description: string;
   date: string;
   status: 'pending' | 'resolved';
+  aiReplies?: AIReply[];
 }
+
+// Proqram məlumatları bazası
+const APP_KNOWLEDGE_BASE = {
+  subscriptionPlans: {
+    basic: { name: 'Basic', price: 0, taskDuration: 'limitsiz', features: ['Limitsiz tapşırıq müddəti', 'Əsas funksiyalar'] },
+    premium: { name: 'Premium', price: 9.99, taskDuration: '20 dəqiqə', features: ['20 dəqiqəyə qədər tapşırıqlar', 'Premium dəstək', 'Prioritet sırası'] },
+    pro: { name: 'Pro', price: 19.99, taskDuration: '30 dəqiqə', features: ['30 dəqiqəyə qədər tapşırıqlar', 'VIP dəstək', 'Eksklüziv tapşırıqlar'] },
+  },
+  taskPricing: {
+    minimum: 2,
+    creationFee: 1,
+    categories: {
+      'data-entry': { min: 2, max: 10, avg: 5 },
+      'translation': { min: 10, max: 50, avg: 25 },
+      'social-media': { min: 3, max: 15, avg: 8 },
+      'surveys': { min: 2, max: 8, avg: 4 },
+      'typing': { min: 3, max: 12, avg: 6 },
+    },
+  },
+  paymentInfo: {
+    methods: ['Bank kartı', 'Visa', 'Mastercard', 'American Express'],
+    withdrawalTime: '24-48 saat',
+    minimumWithdrawal: 10,
+    security: '3D Secure',
+  },
+  taskRules: {
+    completionDeadline: 'Tapşırıq müddəti bitənə qədər tamamlanmalıdır',
+    qualityStandards: 'Keyfiyyət standartlarına uyğun olmalıdır',
+    paymentProcessing: 'Avtomatik ödəniş 24 saat içində',
+  },
+};
 
 export function Support({ language, onNavigate }: SupportProps) {
   const t = translations[language];
@@ -153,15 +215,22 @@ export function Support({ language, onNavigate }: SupportProps) {
   const [selectedProblem, setSelectedProblem] = useState('');
   const [description, setDescription] = useState('');
   const [showSuccess, setShowSuccess] = useState(false);
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: 1,
-      type: 'payment',
-      description: 'Problem with withdrawal',
-      date: '2025-11-25',
-      status: 'resolved',
-    },
-  ]);
+  const [messages, setMessages] = useState<Message[]>([]);
+
+  // localStorage-dan mesajları yüklə
+  useEffect(() => {
+    const savedMessages = localStorage.getItem('supportMessages');
+    if (savedMessages) {
+      setMessages(JSON.parse(savedMessages));
+    }
+  }, []);
+
+  // Mesajları localStorage-a yaz
+  useEffect(() => {
+    if (messages.length > 0) {
+      localStorage.setItem('supportMessages', JSON.stringify(messages));
+    }
+  }, [messages]);
 
   const problemTypes = [
     { id: 'payment', label: t.payment, icon: '💳' },
@@ -171,8 +240,75 @@ export function Support({ language, onNavigate }: SupportProps) {
     { id: 'other', label: t.other, icon: '❓' },
   ];
 
-  // AI Response Generator
-  const generateAIResponse = (problemType: string, description: string, language: Language): string => {
+  // Ağıllı AI cavab generatoru - proqram məlumatlarına əsasən
+  const generateSmartAIResponse = (problemType: string, description: string, language: Language): string => {
+    const lowerDesc = description.toLowerCase();
+    
+    // Abunəlik sualları
+    if (lowerDesc.includes('abunə') || lowerDesc.includes('subscription') || lowerDesc.includes('premium') || lowerDesc.includes('pro') || lowerDesc.includes('basic')) {
+      const plans = APP_KNOWLEDGE_BASE.subscriptionPlans;
+      const responses = {
+        az: `Abunəlik planları: Basic (${plans.basic.price} AZN - ${plans.basic.taskDuration}), Premium (${plans.premium.price} AZN - ${plans.premium.taskDuration} tapşırıqlar), Pro (${plans.pro.price} AZN - ${plans.pro.taskDuration} tapşırıqlar). Abunəlik statusunuzu Settings → Subscriptions bölməsindən dəyişə bilərsiniz.`,
+        en: `Subscription plans: Basic ($${plans.basic.price} - ${plans.basic.taskDuration}), Premium ($${plans.premium.price} - ${plans.premium.taskDuration} tasks), Pro ($${plans.pro.price} - ${plans.pro.taskDuration} tasks). You can change your subscription status from Settings → Subscriptions.`,
+        ru: `Планы подписки: Basic (${plans.basic.price} - ${plans.basic.taskDuration}), Premium (${plans.premium.price} - ${plans.premium.taskDuration} задач), Pro (${plans.pro.price} - ${plans.pro.taskDuration} задач). Вы можете изменить статус подписки в Settings → Subscriptions.`,
+        tr: `Abonelik planları: Basic (${plans.basic.price} TL - ${plans.basic.taskDuration}), Premium (${plans.premium.price} TL - ${plans.premium.taskDuration} görevler), Pro (${plans.pro.price} TL - ${plans.pro.taskDuration} görevler). Abonelik durumunuzu Settings → Subscriptions'dan değiştirebilirsiniz.`,
+        de: `Abonnementpläne: Basic (${plans.basic.price} € - ${plans.basic.taskDuration}), Premium (${plans.premium.price} € - ${plans.premium.taskDuration} Aufgaben), Pro (${plans.pro.price} € - ${plans.pro.taskDuration} Aufgaben). Sie können Ihren Abonnementstatus unter Settings → Subscriptions ändern.`,
+        fr: `Plans d'abonnement: Basic (${plans.basic.price} € - ${plans.basic.taskDuration}), Premium (${plans.premium.price} € - ${plans.premium.taskDuration} tâches), Pro (${plans.pro.price} € - ${plans.pro.taskDuration} tâches). Vous pouvez modifier votre statut d'abonnement depuis Settings → Subscriptions.`,
+        es: `Planes de suscripción: Basic ($${plans.basic.price} - ${plans.basic.taskDuration}), Premium ($${plans.premium.price} - ${plans.premium.taskDuration} tareas), Pro ($${plans.pro.price} - ${plans.pro.taskDuration} tareas). Puede cambiar su estado de suscripción desde Settings → Subscriptions.`,
+        ar: `خطط الاشتراك: Basic (${plans.basic.price} - ${plans.basic.taskDuration})، Premium (${plans.premium.price} - ${plans.premium.taskDuration} مهام)، Pro (${plans.pro.price} - ${plans.pro.taskDuration} مهام). يمكنك تغيير حالة الاشتراك من Settings → Subscriptions.`,
+      };
+      return responses[language] || responses.en;
+    }
+
+    // Qiymət sualları
+    if (lowerDesc.includes('qiymət') || lowerDesc.includes('price') || lowerDesc.includes('cost') || lowerDesc.includes('fee') || lowerDesc.includes('ödəniş')) {
+      const pricing = APP_KNOWLEDGE_BASE.taskPricing;
+      const responses = {
+        az: `Tapşırıq qiymətləri minimum $${pricing.minimum}-dən başlayır. Tapşırıq yaratmaq üçün $${pricing.creationFee} ödəniş lazımdır. Kateqoriyalara görə: Data Entry ($${pricing.categories['data-entry'].min}-$${pricing.categories['data-entry'].max}), Tərcümə ($${pricing.categories.translation.min}-$${pricing.categories.translation.max}), Sosial Media ($${pricing.categories['social-media'].min}-$${pricing.categories['social-media'].max}).`,
+        en: `Task prices start from minimum $${pricing.minimum}. Creating a task requires $${pricing.creationFee} payment. By categories: Data Entry ($${pricing.categories['data-entry'].min}-$${pricing.categories['data-entry'].max}), Translation ($${pricing.categories.translation.min}-$${pricing.categories.translation.max}), Social Media ($${pricing.categories['social-media'].min}-$${pricing.categories['social-media'].max}).`,
+        ru: `Цены на задачи начинаются от $${pricing.minimum}. Создание задачи требует оплату $${pricing.creationFee}. По категориям: Ввод данных ($${pricing.categories['data-entry'].min}-$${pricing.categories['data-entry'].max}), Перевод ($${pricing.categories.translation.min}-$${pricing.categories.translation.max}), Соцсети ($${pricing.categories['social-media'].min}-$${pricing.categories['social-media'].max}).`,
+        tr: `Görev fiyatları minimum $${pricing.minimum}'den başlar. Görev oluşturmak $${pricing.creationFee} ödeme gerektirir. Kategorilere göre: Veri Girişi ($${pricing.categories['data-entry'].min}-$${pricing.categories['data-entry'].max}), Çeviri ($${pricing.categories.translation.min}-$${pricing.categories.translation.max}), Sosyal Medya ($${pricing.categories['social-media'].min}-$${pricing.categories['social-media'].max}).`,
+        de: `Aufgabenpreise beginnen ab $${pricing.minimum}. Das Erstellen einer Aufgabe erfordert eine Zahlung von $${pricing.creationFee}. Nach Kategorien: Dateneingabe ($${pricing.categories['data-entry'].min}-$${pricing.categories['data-entry'].max}), Übersetzung ($${pricing.categories.translation.min}-$${pricing.categories.translation.max}), Social Media ($${pricing.categories['social-media'].min}-$${pricing.categories['social-media'].max}).`,
+        fr: `Les prix des tâches commencent à partir de $${pricing.minimum}. La création d'une tâche nécessite un paiement de $${pricing.creationFee}. Par catégories: Saisie de données ($${pricing.categories['data-entry'].min}-$${pricing.categories['data-entry'].max}), Traduction ($${pricing.categories.translation.min}-$${pricing.categories.translation.max}), Réseaux sociaux ($${pricing.categories['social-media'].min}-$${pricing.categories['social-media'].max}).`,
+        es: `Los precios de las tareas comienzan desde $${pricing.minimum}. Crear una tarea requiere un pago de $${pricing.creationFee}. Por categorías: Entrada de datos ($${pricing.categories['data-entry'].min}-$${pricing.categories['data-entry'].max}), Traducción ($${pricing.categories.translation.min}-$${pricing.categories.translation.max}), Redes sociales ($${pricing.categories['social-media'].min}-$${pricing.categories['social-media'].max}).`,
+        ar: `تبدأ أسعار المهام من $${pricing.minimum} كحد أدنى. يتطلب إنشاء مهمة دفع $${pricing.creationFee}. حسب الفئات: إدخال البيانات ($${pricing.categories['data-entry'].min}-$${pricing.categories['data-entry'].max})، الترجمة ($${pricing.categories.translation.min}-$${pricing.categories.translation.max})، وسائل التواصل ($${pricing.categories['social-media'].min}-$${pricing.categories['social-media'].max}).`,
+      };
+      return responses[language] || responses.en;
+    }
+
+    // Çıxarış/Pul köçürmə sualları
+    if (lowerDesc.includes('çıxarış') || lowerDesc.includes('withdrawal') || lowerDesc.includes('transfer') || lowerDesc.includes('köçür')) {
+      const payment = APP_KNOWLEDGE_BASE.paymentInfo;
+      const responses = {
+        az: `Minimum çıxarış məbləği $${payment.minimumWithdrawal}-dır. Pul köçürmə ${payment.withdrawalTime} içində həyata keçirilir. Ödəniş üsulları: ${payment.methods.join(', ')}. Təhlükəsizlik üçün ${payment.security} tələb olunur. Wallet səhifəsindən pul köçürə və kart əlavə edə bilərsiniz.`,
+        en: `Minimum withdrawal amount is $${payment.minimumWithdrawal}. Money transfer takes ${payment.withdrawalTime}. Payment methods: ${payment.methods.join(', ')}. ${payment.security} is required for security. You can transfer money and add cards from the Wallet page.`,
+        ru: `Минимальная сумма вывода составляет $${payment.minimumWithdrawal}. Перевод денег занимает ${payment.withdrawalTime}. Способы оплаты: ${payment.methods.join(', ')}. Для безопасности требуется ${payment.security}. Вы можете переводить деньги и добавлять карты со страницы Wallet.`,
+        tr: `Minimum çekim tutarı $${payment.minimumWithdrawal}'dir. Para transferi ${payment.withdrawalTime} sürer. Ödeme yöntemleri: ${payment.methods.join(', ')}. Güvenlik için ${payment.security} gereklidir. Wallet sayfasından para transfer edebilir ve kart ekleyebilirsiniz.`,
+        de: `Der Mindestauszahlungsbetrag beträgt $${payment.minimumWithdrawal}. Geldtransfer dauert ${payment.withdrawalTime}. Zahlungsmethoden: ${payment.methods.join(', ')}. ${payment.security} ist aus Sicherheitsgründen erforderlich. Sie können Geld überweisen und Karten von der Wallet-Seite hinzufügen.`,
+        fr: `Le montant minimum de retrait est de $${payment.minimumWithdrawal}. Le transfert d'argent prend ${payment.withdrawalTime}. Méthodes de paiement: ${payment.methods.join(', ')}. ${payment.security} est requis pour la sécurité. Vous pouvez transférer de l'argent et ajouter des cartes depuis la page Wallet.`,
+        es: `La cantidad mínima de retiro es $${payment.minimumWithdrawal}. La transferencia de dinero toma ${payment.withdrawalTime}. Métodos de pago: ${payment.methods.join(', ')}. Se requiere ${payment.security} para seguridad. Puede transferir dinero y agregar tarjetas desde la página Wallet.`,
+        ar: `الحد الأدنى لمبلغ السحب هو $${payment.minimumWithdrawal}. يستغرق تحويل الأموال ${payment.withdrawalTime}. طرق الدفع: ${payment.methods.join(', ')}. ${payment.security} مطلوب للأمان. يمكنك تحويل الأموال وإضافة البطاقات من صفحة Wallet.`,
+      };
+      return responses[language] || responses.en;
+    }
+
+    // Tapşırıq qaydaları
+    if (lowerDesc.includes('tapşırıq') || lowerDesc.includes('task') || lowerDesc.includes('müddət') || lowerDesc.includes('deadline') || lowerDesc.includes('tamamla')) {
+      const rules = APP_KNOWLEDGE_BASE.taskRules;
+      const responses = {
+        az: `Tapşırıq qaydaları: ${rules.completionDeadline}. ${rules.qualityStandards}. ${rules.paymentProcessing}. Tapşırıqları Extra Work səhifəsindən tapa bilərsiniz. Öz tapşırıqlarınızı isə Post Job bölməsindən yarada bilərsiniz.`,
+        en: `Task rules: ${rules.completionDeadline}. ${rules.qualityStandards}. ${rules.paymentProcessing}. You can find tasks from the Extra Work page. You can create your own tasks from the Post Job section.`,
+        ru: `Правила задач: ${rules.completionDeadline}. ${rules.qualityStandards}. ${rules.paymentProcessing}. Вы можете найти задачи на странице Extra Work. Создавать свои задачи можно в разделе Post Job.`,
+        tr: `Görev kuralları: ${rules.completionDeadline}. ${rules.qualityStandards}. ${rules.paymentProcessing}. Görevleri Extra Work sayfasından bulabilirsiniz. Kendi görevlerinizi Post Job bölümünden oluşturabilirsiniz.`,
+        de: `Aufgabenregeln: ${rules.completionDeadline}. ${rules.qualityStandards}. ${rules.paymentProcessing}. Sie können Aufgaben auf der Extra Work-Seite finden. Sie können Ihre eigenen Aufgaben im Abschnitt Post Job erstellen.`,
+        fr: `Règles des tâches: ${rules.completionDeadline}. ${rules.qualityStandards}. ${rules.paymentProcessing}. Vous pouvez trouver des tâches sur la page Extra Work. Vous pouvez créer vos propres tâches dans la section Post Job.`,
+        es: `Reglas de tareas: ${rules.completionDeadline}. ${rules.qualityStandards}. ${rules.paymentProcessing}. Puede encontrar tareas en la página Extra Work. Puede crear sus propias tareas en la sección Post Job.`,
+        ar: `قواعد المهام: ${rules.completionDeadline}. ${rules.qualityStandards}. ${rules.paymentProcessing}. يمكنك العثور على المهام من صفحة Extra Work. يمكنك إنشاء مهامك الخاصة من قسم Post Job.`,
+      };
+      return responses[language] || responses.en;
+    }
+
+    // Standart cavablar
     const responses = {
       payment: {
         az: [
@@ -187,7 +323,7 @@ export function Support({ language, onNavigate }: SupportProps) {
         ],
         ru: [
           "Мы расследуем проблему с платежом. Большинство случаев решается в течение 24 часов. Убедитесь, что ваша карта активна.",
-          "Если платеж не прошел, проверьте баланс и попробуйте снова. Наша ко��анда поддержки готова помочь.",
+          "Если платеж не прошел, проверьте баланс и попробуйте снова. Наша команда поддержки готова помочь.",
           "При проблемах с картой обновите ее или добавьте новую. Убедитесь, что 3D Secure включен для безопасности."
         ],
         tr: [
@@ -396,11 +532,12 @@ export function Support({ language, onNavigate }: SupportProps) {
     if (!selectedProblem || !description.trim()) return;
 
     const newMessage: Message = {
-      id: messages.length + 1,
+      id: Date.now(),
       type: selectedProblem,
       description: description,
       date: new Date().toISOString().split('T')[0],
       status: 'pending',
+      aiReplies: [],
     };
 
     setMessages([newMessage, ...messages]);
@@ -408,23 +545,33 @@ export function Support({ language, onNavigate }: SupportProps) {
     setSelectedProblem('');
     setDescription('');
 
-    // Generate AI response and show as toast notification
+    // AI cavab generasiya et və mesaja əlavə et
     setTimeout(() => {
-      const aiResponse = generateAIResponse(selectedProblem, description, language);
-      toast.success(
-        language === 'az' ? 'AI Cavab' : 
-        language === 'en' ? 'AI Response' : 
-        language === 'ru' ? 'Ответ AI' : 
-        language === 'tr' ? 'AI Yanıt' : 
-        language === 'de' ? 'AI-Antwort' : 
-        language === 'fr' ? 'Réponse IA' : 
-        language === 'es' ? 'Respuesta IA' : 
-        'رد AI',
-        {
-          description: aiResponse,
-          duration: 8000,
-        }
+      const aiResponse = generateSmartAIResponse(selectedProblem, description, language);
+      
+      // AI cavabını mesaja əlavə et
+      setMessages(prevMessages => 
+        prevMessages.map(msg => 
+          msg.id === newMessage.id 
+            ? { 
+                ...msg, 
+                aiReplies: [
+                  {
+                    id: `ai-${Date.now()}`,
+                    text: aiResponse,
+                    timestamp: new Date().toISOString(),
+                  }
+                ] 
+              }
+            : msg
+        )
       );
+
+      // Bildiriş göstər
+      toast.success(t.aiResponse, {
+        description: aiResponse,
+        duration: 8000,
+      });
     }, 1500);
 
     setTimeout(() => {
@@ -538,33 +685,67 @@ export function Support({ language, onNavigate }: SupportProps) {
                 <p>{t.noMessages}</p>
               </div>
             ) : (
-              <div className="space-y-4">
+              <div className="space-y-6">
                 {messages.map((msg) => (
                   <div
                     key={msg.id}
-                    className="border-2 border-gray-200 rounded-2xl p-4 hover:border-purple-300 transition-all"
+                    className="border-2 border-gray-200 rounded-2xl p-4 hover:border-purple-300 transition-all space-y-4"
                   >
-                    <div className="flex items-start justify-between mb-2">
-                      <div className="flex items-center gap-2">
-                        <span className="text-2xl">
-                          {problemTypes.find((p) => p.id === msg.type)?.icon}
-                        </span>
-                        <span className="text-gray-700">
-                          {problemTypes.find((p) => p.id === msg.type)?.label}
-                        </span>
+                    {/* İstifadəçi mesajı */}
+                    <div className="flex items-start gap-3">
+                      <div className="bg-purple-100 p-2 rounded-full flex-shrink-0">
+                        <UserIcon size={20} className="text-purple-600" />
                       </div>
-                      <span
-                        className={`px-3 py-1 rounded-full text-xs ${
-                          msg.status === 'resolved'
-                            ? 'bg-green-100 text-green-600'
-                            : 'bg-yellow-100 text-yellow-600'
-                        }`}
-                      >
-                        {msg.status === 'resolved' ? '✓ Resolved' : 'Pending'}
-                      </span>
+                      <div className="flex-1">
+                        <div className="flex items-start justify-between mb-2">
+                          <div className="flex items-center gap-2">
+                            <span className="text-gray-700">{t.you}</span>
+                            <span className="text-2xl">
+                              {problemTypes.find((p) => p.id === msg.type)?.icon}
+                            </span>
+                            <span className="text-sm text-gray-500">
+                              {problemTypes.find((p) => p.id === msg.type)?.label}
+                            </span>
+                          </div>
+                          <span
+                            className={`px-3 py-1 rounded-full text-xs flex-shrink-0 ${
+                              msg.status === 'resolved'
+                                ? 'bg-green-100 text-green-600'
+                                : 'bg-yellow-100 text-yellow-600'
+                            }`}
+                          >
+                            {msg.status === 'resolved' ? '✓ Resolved' : 'Pending'}
+                          </span>
+                        </div>
+                        <p className="text-sm text-gray-600 mb-2">{msg.description}</p>
+                        <p className="text-xs text-gray-400">{msg.date}</p>
+                      </div>
                     </div>
-                    <p className="text-sm text-gray-600 mb-2">{msg.description}</p>
-                    <p className="text-xs text-gray-400">{msg.date}</p>
+
+                    {/* AI cavabları */}
+                    {msg.aiReplies && msg.aiReplies.length > 0 && (
+                      <div className="ml-6 space-y-3 border-l-2 border-purple-200 pl-4">
+                        {msg.aiReplies.map((reply) => (
+                          <div key={reply.id} className="flex items-start gap-3">
+                            <div className="bg-gradient-to-r from-purple-500 to-blue-500 p-2 rounded-full flex-shrink-0">
+                              <Bot size={18} className="text-white" />
+                            </div>
+                            <div className="flex-1 bg-purple-50 rounded-xl p-3">
+                              <div className="flex items-center gap-2 mb-2">
+                                <span className="text-sm text-purple-700">{t.aiAssistant}</span>
+                                <span className="text-xs text-gray-400">
+                                  {new Date(reply.timestamp).toLocaleTimeString(language, { 
+                                    hour: '2-digit', 
+                                    minute: '2-digit' 
+                                  })}
+                                </span>
+                              </div>
+                              <p className="text-sm text-gray-700 leading-relaxed">{reply.text}</p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>

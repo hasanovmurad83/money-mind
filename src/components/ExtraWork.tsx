@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Language, User, PendingJob } from '../App';
-import { Clock, DollarSign, Star, Globe, ChevronLeft, ChevronRight, X, User as UserIcon, Briefcase, Calendar, Plus } from 'lucide-react';
+import { Clock, DollarSign, Star, Globe, ChevronLeft, ChevronRight, X, User as UserIcon, Briefcase, Calendar, Plus, Filter, SlidersHorizontal } from 'lucide-react';
 import { ImageWithFallback } from './figma/ImageWithFallback';
 import { toast } from 'sonner@2.0.3';
 import { CreateTaskDialog } from './CreateTaskDialog';
@@ -45,21 +45,16 @@ const translations = {
     waitingApproval: 'Gözləmə siyahısına əlavə edildi',
     noTasksAvailable: 'Mövcud tapşırıq yoxdur',
     addTask: 'Tapşırıq Əlavə Et',
-    postJob: 'Tapşırıq Yarat',
-    title: 'Başlıq',
-    titlePlaceholder: 'Tapşırığın adını daxil edin',
-    descriptionPlaceholder: 'Tapşırıq haqqında ətraflı məlumat',
-    selectCategory: 'Kateqoriya seçin',
-    priceLabel: 'Qiymət ($)',
-    durationLabel: 'Müddət (dəqiqə)',
-    minPrice: 'Minimum: 2$',
-    suggestedPrice: 'Tövsiyyə olunan qiymət',
-    postingFee: 'Dərc haqqı: 1$',
-    publish: 'Dərc et',
-    insufficientBalance: 'Balansınız çatmır! Minimum 1$ lazımdır.',
-    minPriceError: 'Minimum qiymət 2$ olmalıdır',
-    taskPosted: 'Tapşırıq uğurla dərc edildi!',
-    cancel: 'Ləğv et',
+    filters: 'Filtrlər',
+    priceRange: 'Qiymət aralığı',
+    durationRange: 'Müddət aralığı',
+    categories: 'Kateqoriyalar',
+    clearFilters: 'Filtrləri təmizlə',
+    applyFilters: 'Tətbiq et',
+    min: 'Min',
+    max: 'Maks',
+    showFilters: 'Filtrləri göstər',
+    hideFilters: 'Filtrləri gizlət',
   },
   en: {
     extraWork: 'Extra Work',
@@ -92,6 +87,17 @@ const translations = {
     applying: 'Applying...',
     waitingApproval: 'Added to waiting list',
     noTasksAvailable: 'No tasks available',
+    addTask: 'Add Task',
+    filters: 'Filters',
+    priceRange: 'Price Range',
+    durationRange: 'Duration Range',
+    categories: 'Categories',
+    clearFilters: 'Clear Filters',
+    applyFilters: 'Apply',
+    min: 'Min',
+    max: 'Max',
+    showFilters: 'Show Filters',
+    hideFilters: 'Hide Filters',
   },
   ru: {
     extraWork: 'Дополнительная Работа',
@@ -124,6 +130,17 @@ const translations = {
     applying: 'Подача заявки...',
     waitingApproval: 'Добавлено в список ожидания',
     noTasksAvailable: 'Нет доступных задач',
+    addTask: 'Добавить задачу',
+    filters: 'Фильтры',
+    priceRange: 'Диапазон цен',
+    durationRange: 'Диапазон времени',
+    categories: 'Категории',
+    clearFilters: 'Очистить фильтры',
+    applyFilters: 'Применить',
+    min: 'Мин',
+    max: 'Макс',
+    showFilters: 'Показать фильтры',
+    hideFilters: 'Скрыть фильтры',
   },
   tr: {
     extraWork: 'Ek İş',
@@ -156,6 +173,17 @@ const translations = {
     applying: 'Başvuruluyor...',
     waitingApproval: 'Bekleme listesine eklendi',
     noTasksAvailable: 'Mevcut görev yok',
+    addTask: 'Görev Ekle',
+    filters: 'Filtreler',
+    priceRange: 'Fiyat Aralığı',
+    durationRange: 'Süre Aralığı',
+    categories: 'Kategoriler',
+    clearFilters: 'Filtreleri Temizle',
+    applyFilters: 'Uygula',
+    min: 'Min',
+    max: 'Maks',
+    showFilters: 'Filtreleri Göster',
+    hideFilters: 'Filtreleri Gizle',
   },
   de: {
     extraWork: 'Zusätzliche Arbeit',
@@ -188,6 +216,17 @@ const translations = {
     applying: 'Bewerbung läuft...',
     waitingApproval: 'Zur Warteliste hinzugefügt',
     noTasksAvailable: 'Keine Aufgaben verfügbar',
+    addTask: 'Aufgabe hinzufügen',
+    filters: 'Filter',
+    priceRange: 'Preisspanne',
+    durationRange: 'Zeitspanne',
+    categories: 'Kategorien',
+    clearFilters: 'Filter löschen',
+    applyFilters: 'Anwenden',
+    min: 'Min',
+    max: 'Max',
+    showFilters: 'Filter anzeigen',
+    hideFilters: 'Filter ausblenden',
   },
   fr: {
     extraWork: 'Travail Supplémentaire',
@@ -220,6 +259,17 @@ const translations = {
     applying: 'Candidature en cours...',
     waitingApproval: 'Ajouté à la liste d\'attente',
     noTasksAvailable: 'Aucune tâche disponible',
+    addTask: 'Ajouter une tâche',
+    filters: 'Filtres',
+    priceRange: 'Fourchette de prix',
+    durationRange: 'Plage de durée',
+    categories: 'Catégories',
+    clearFilters: 'Effacer les filtres',
+    applyFilters: 'Appliquer',
+    min: 'Min',
+    max: 'Max',
+    showFilters: 'Afficher les filtres',
+    hideFilters: 'Masquer les filtres',
   },
   es: {
     extraWork: 'Trabajo Extra',
@@ -252,6 +302,17 @@ const translations = {
     applying: 'Aplicando...',
     waitingApproval: 'Añadido a la lista de espera',
     noTasksAvailable: 'No hay tareas disponibles',
+    addTask: 'Agregar tarea',
+    filters: 'Filtros',
+    priceRange: 'Rango de precio',
+    durationRange: 'Rango de duración',
+    categories: 'Categorías',
+    clearFilters: 'Limpiar filtros',
+    applyFilters: 'Aplicar',
+    min: 'Mín',
+    max: 'Máx',
+    showFilters: 'Mostrar filtros',
+    hideFilters: 'Ocultar filtros',
   },
   ar: {
     extraWork: 'عمل إضافي',
@@ -284,6 +345,17 @@ const translations = {
     applying: 'جاري التقديم...',
     waitingApproval: 'تمت الإضافة إلى قائمة الانتظار',
     noTasksAvailable: 'لا توجد مهام متاحة',
+    addTask: 'إضافة مهمة',
+    filters: 'المرشحات',
+    priceRange: 'نطاق السعر',
+    durationRange: 'نطاق المدة',
+    categories: 'الفئات',
+    clearFilters: 'مسح المرشحات',
+    applyFilters: 'تطبيق',
+    min: 'دقيقة',
+    max: 'الأعلى',
+    showFilters: 'إظهار المرشحات',
+    hideFilters: 'إخفاء المرشحات',
   },
 };
 
@@ -299,70 +371,134 @@ const employers = [
 ];
 
 const initialTasks = [
-  // Page 1 - Qiymətlər yarıya salındı
-  { id: 1, title: 'dataEntry', description: 'Enter 50 product names into Excel spreadsheet', price: 2.50, duration: 15, category: 'dataEntry', image: 'https://images.unsplash.com/photo-1608742213632-1dfd28dfb0c7?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxkYXRhJTIwZW50cnklMjBjb21wdXRlcnxlbnwxfHx8fDE3NjQ0MDI2NDd8MA&ixlib=rb-4.1.0&q=80&w=1080', rating: 4.9, postedBy: employers[0] },
-  { id: 2, title: 'translation', description: 'Translate 200 words from English to Azerbaijani', price: 4.25, duration: 25, category: 'translation', image: 'https://images.unsplash.com/photo-1620969427101-7a2bb6d83273?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx0cmFuc2xhdGlvbiUyMGxhbmd1YWdlfGVufDF8fHx8MTc2NDMxNDY4OHww&ixlib=rb-4.1.0&q=80&w=1080', rating: 4.8, postedBy: employers[1] },
-  { id: 3, title: 'socialMedia', description: 'Like and comment on 20 Instagram posts', price: 1.75, duration: 10, category: 'socialMedia', image: 'https://images.unsplash.com/photo-1611162617213-7d7a39e9b1d7?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxzb2NpYWwlMjBtZWRpYSUyMG1hcmtldGluZ3xlbnwxfHx8fDE3NjQyOTU3MzZ8MA&ixlib=rb-4.1.0&q=80&w=1080', rating: 4.7, postedBy: employers[2] },
-  { id: 4, title: 'survey', description: 'Complete 5-minute online survey about shopping habits', price: 1.50, duration: 5, category: 'survey', image: 'https://images.unsplash.com/photo-1689848836441-83d7069f62d4?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxzdXJ2ZXklMjBjbGlwYm9hcmR8ZW58MXx8fHwxNzY0NDAyNjQ4fDA&ixlib=rb-4.1.0&q=80&w=1080', rating: 4.6, postedBy: employers[3] },
-  { id: 5, title: 'typing', description: 'Type 500 words from scanned document', price: 3.50, duration: 20, category: 'typing', image: 'https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx0eXBpbmclMjBrZXlib2FyZHxlbnwxfHx8fDE3NjQ0MDI2NDh8MA&ixlib=rb-4.1.0&q=80&w=1080', rating: 4.9, postedBy: employers[4] },
+  // Page 1
+  { id: 1, title: 'dataEntry', description: 'Enter 50 product names into Excel spreadsheet', price: 2.50, duration: 15, category: 'dataEntry', image: 'https://images.unsplash.com/photo-1608742213632-1dfd28dfb0c7?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxkYXRhJTIwZW50cnklMjBjb21wdXRlcnxlbnwxfHx8fDE3NjQ0MDI2NDd8MA&ixlib=rb-4.1.0&q=80&w=1080', postedBy: employers[0] },
+  { id: 2, title: 'translation', description: 'Translate 200 words from English to Azerbaijani', price: 4.25, duration: 25, category: 'translation', image: 'https://images.unsplash.com/photo-1620969427101-7a2bb6d83273?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx0cmFuc2xhdGlvbiUyMGxhbmd1YWdlfGVufDF8fHx8MTc2NDMxNDY4OHww&ixlib=rb-4.1.0&q=80&w=1080', postedBy: employers[1] },
+  { id: 3, title: 'socialMedia', description: 'Like and comment on 20 Instagram posts', price: 1.75, duration: 10, category: 'socialMedia', image: 'https://images.unsplash.com/photo-1611162617213-7d7a39e9b1d7?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxzb2NpYWwlMjBtZWRpYSUyMG1hcmtldGluZ3xlbnwxfHx8fDE3NjQyOTU3MzZ8MA&ixlib=rb-4.1.0&q=80&w=1080', postedBy: employers[2] },
+  { id: 4, title: 'survey', description: 'Complete 5-minute online survey about shopping habits', price: 1.50, duration: 5, category: 'survey', image: 'https://images.unsplash.com/photo-1689848836441-83d7069f62d4?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxzdXJ2ZXklMjBjbGlwYm9hcmR8ZW58MXx8fHwxNzY0NDAyNjQ4fDA&ixlib=rb-4.1.0&q=80&w=1080', postedBy: employers[3] },
+  { id: 5, title: 'typing', description: 'Type 500 words from scanned document', price: 3.50, duration: 20, category: 'typing', image: 'https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx0eXBpbmclMjBrZXlib2FyZHxlbnwxfHx8fDE3NjQ0MDI2NDh8MA&ixlib=rb-4.1.0&q=80&w=1080', postedBy: employers[4] },
   
   // Page 2
-  { id: 6, title: 'dataEntry', description: 'Copy 30 email addresses to Google Sheets', price: 2.10, duration: 12, category: 'dataEntry', image: 'https://images.unsplash.com/photo-1608742213632-1dfd28dfb0c7?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxkYXRhJTIwZW50cnklMjBjb21wdXRlcnxlbnwxfHx8fDE3NjQ0MDI2NDd8MA&ixlib=rb-4.1.0&q=80&w=1080', rating: 4.8, postedBy: employers[5] },
-  { id: 7, title: 'videoEditing', description: 'Edit 2-minute promotional video', price: 7.50, duration: 45, category: 'videoEditing', image: 'https://images.unsplash.com/photo-1574717025058-2f8737d2e2b7?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx2aWRlbyUyMGVkaXRpbmd8ZW58MXx8fHwxNzY0MzkxNjg2fDA&ixlib=rb-4.1.0&q=80&w=1080', rating: 4.9, postedBy: employers[6] },
-  { id: 8, title: 'graphicDesign', description: 'Design simple social media banner', price: 6.00, duration: 30, category: 'graphicDesign', image: 'https://images.unsplash.com/photo-1740059020488-ba2541d7f907?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxncmFwaGljJTIwZGVzaWduJTIwY3JlYXRpdmV8ZW58MXx8fHwxNzY0MzI4ODM1fDA&ixlib=rb-4.1.0&q=80&w=1080', rating: 4.7, postedBy: employers[7] },
-  { id: 9, title: 'translation', description: 'Translate product descriptions (300 words)', price: 5.00, duration: 35, category: 'translation', image: 'https://images.unsplash.com/photo-1620969427101-7a2bb6d83273?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx0cmFuc2xhdGlvbiUyMGxhbmd1YWdlfGVufDF8fHx8MTc2NDMxNDY4OHww&ixlib=rb-4.1.0&q=80&w=1080', rating: 4.8, postedBy: employers[0] },
-  { id: 10, title: 'voiceOver', description: 'Record 1-minute voice-over for video', price: 9.00, duration: 20, category: 'voiceOver', image: 'https://images.unsplash.com/photo-1561446289-4112a4f79116?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx2b2ljZSUyMHJlY29yZGluZyUyMG1pY3JvcGhvbmV8ZW58MXx8fHwxNzY0MzI5NTAwfDA&ixlib=rb-4.1.0&q=80&w=1080', rating: 4.9, postedBy: employers[1] },
+  { id: 6, title: 'dataEntry', description: 'Copy 30 email addresses to Google Sheets', price: 2.10, duration: 12, category: 'dataEntry', image: 'https://images.unsplash.com/photo-1608742213632-1dfd28dfb0c7?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxkYXRhJTIwZW50cnklMjBjb21wdXRlcnxlbnwxfHx8fDE3NjQ0MDI2NDd8MA&ixlib=rb-4.1.0&q=80&w=1080', postedBy: employers[5] },
+  { id: 7, title: 'videoEditing', description: 'Edit 2-minute promotional video', price: 7.50, duration: 45, category: 'videoEditing', image: 'https://images.unsplash.com/photo-1574717025058-2f8737d2e2b7?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx2aWRlbyUyMGVkaXRpbmd8ZW58MXx8fHwxNzY0MzkxNjg2fDA&ixlib=rb-4.1.0&q=80&w=1080', postedBy: employers[6] },
+  { id: 8, title: 'graphicDesign', description: 'Design simple social media banner', price: 6.00, duration: 30, category: 'graphicDesign', image: 'https://images.unsplash.com/photo-1740059020488-ba2541d7f907?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxncmFwaGljJTIwZGVzaWduJTIwY3JlYXRpdmV8ZW58MXx8fHwxNzY0MzI4ODM1fDA&ixlib=rb-4.1.0&q=80&w=1080', postedBy: employers[7] },
+  { id: 9, title: 'translation', description: 'Translate product descriptions (300 words)', price: 5.00, duration: 35, category: 'translation', image: 'https://images.unsplash.com/photo-1620969427101-7a2bb6d83273?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx0cmFuc2xhdGlvbiUyMGxhbmd1YWdlfGVufDF8fHx8MTc2NDMxNDY4OHww&ixlib=rb-4.1.0&q=80&w=1080', postedBy: employers[0] },
+  { id: 10, title: 'voiceOver', description: 'Record 1-minute voice-over for video', price: 9.00, duration: 20, category: 'voiceOver', image: 'https://images.unsplash.com/photo-1561446289-4112a4f79116?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx2b2ljZSUyMHJlY29yZGluZyUyMG1pY3JvcGhvbmV8ZW58MXx8fHwxNzY0MzI5NTAwfDA&ixlib=rb-4.1.0&q=80&w=1080', postedBy: employers[1] },
   
   // Page 3
-  { id: 11, title: 'contentWriting', description: 'Write 500-word blog post', price: 7.00, duration: 40, category: 'contentWriting', image: 'https://images.unsplash.com/photo-1758874385949-cec80d549f67?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjb250ZW50JTIwd3JpdGluZyUyMG5vdGVib29rfGVufDF8fHx8MTc2NDQwMjY1Mnww&ixlib=rb-4.1.0&q=80&w=1080', rating: 4.8, postedBy: employers[2] },
-  { id: 12, title: 'webResearch', description: 'Research 10 competitors for market analysis', price: 4.50, duration: 30, category: 'webResearch', image: 'https://images.unsplash.com/photo-1762330465551-5217a6dec84f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx3ZWIlMjByZXNlYXJjaCUyMGJyb3dzZXJ8ZW58MXx8fHwxNzY0NDAyNjUyfDA&ixlib=rb-4.1.0&q=80&w=1080', rating: 4.6, postedBy: employers[3] },
-  { id: 13, title: 'socialMedia', description: 'Create 5 engaging social media posts', price: 3.25, duration: 18, category: 'socialMedia', image: 'https://images.unsplash.com/photo-1611162617213-7d7a39e9b1d7?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxzb2NpYWwlMjBtZWRpYSUyMG1hcmtldGluZ3xlbnwxfHx8fDE3NjQyOTU3MzZ8MA&ixlib=rb-4.1.0&q=80&w=1080', rating: 4.7, postedBy: employers[4] },
-  { id: 14, title: 'dataEntry', description: 'Update customer database with 100 entries', price: 4.00, duration: 25, category: 'dataEntry', image: 'https://images.unsplash.com/photo-1608742213632-1dfd28dfb0c7?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxkYXRhJTIwZW50cnklMjBjb21wdXRlcnxlbnwxfHx8fDE3NjQ0MDI2NDd8MA&ixlib=rb-4.1.0&q=80&w=1080', rating: 4.8, postedBy: employers[5] },
-  { id: 15, title: 'survey', description: 'Participate in 10-minute product feedback survey', price: 2.25, duration: 10, category: 'survey', image: 'https://images.unsplash.com/photo-1689848836441-83d7069f62d4?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxzdXJ2ZXklMjBjbGlwYm9hcmR8ZW58MXx8fHwxNzY0NDAyNjQ4fDA&ixlib=rb-4.1.0&q=80&w=1080', rating: 4.5, postedBy: employers[6] },
+  { id: 11, title: 'contentWriting', description: 'Write 500-word blog post', price: 7.00, duration: 40, category: 'contentWriting', image: 'https://images.unsplash.com/photo-1758874385949-cec80d549f67?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjb250ZW50JTIwd3JpdGluZyUyMG5vdGVib29rfGVufDF8fHx8MTc2NDQwMjY1Mnww&ixlib=rb-4.1.0&q=80&w=1080', postedBy: employers[2] },
+  { id: 12, title: 'webResearch', description: 'Research 10 competitors for market analysis', price: 4.50, duration: 30, category: 'webResearch', image: 'https://images.unsplash.com/photo-1762330465551-5217a6dec84f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx3ZWIlMjByZXNlYXJjaCUyMGJyb3dzZXJ8ZW58MXx8fHwxNzY0NDAyNjUyfDA&ixlib=rb-4.1.0&q=80&w=1080', postedBy: employers[3] },
+  { id: 13, title: 'socialMedia', description: 'Create 5 engaging social media posts', price: 3.25, duration: 18, category: 'socialMedia', image: 'https://images.unsplash.com/photo-1611162617213-7d7a39e9b1d7?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxzb2NpYWwlMjBtZWRpYSUyMG1hcmtldGluZ3xlbnwxfHx8fDE3NjQyOTU3MzZ8MA&ixlib=rb-4.1.0&q=80&w=1080', postedBy: employers[4] },
+  { id: 14, title: 'dataEntry', description: 'Update customer database with 100 entries', price: 4.00, duration: 25, category: 'dataEntry', image: 'https://images.unsplash.com/photo-1608742213632-1dfd28dfb0c7?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxkYXRhJTIwZW50cnklMjBjb21wdXRlcnxlbnwxfHx8fDE3NjQ0MDI2NDd8MA&ixlib=rb-4.1.0&q=80&w=1080', postedBy: employers[5] },
+  { id: 15, title: 'survey', description: 'Participate in 10-minute product feedback survey', price: 2.25, duration: 10, category: 'survey', image: 'https://images.unsplash.com/photo-1689848836441-83d7069f62d4?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxzdXJ2ZXklMjBjbGlwYm9hcmR8ZW58MXx8fHwxNzY0NDAyNjQ4fDA&ixlib=rb-4.1.0&q=80&w=1080', postedBy: employers[6] },
   
   // Page 4
-  { id: 16, title: 'typing', description: 'Transcribe 15-minute audio recording', price: 5.50, duration: 35, category: 'typing', image: 'https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx0eXBpbmclMjBrZXlib2FyZHxlbnwxfHx8fDE3NjQ0MDI2NDh8MA&ixlib=rb-4.1.0&q=80&w=1080', rating: 4.9, postedBy: employers[7] },
-  { id: 17, title: 'graphicDesign', description: 'Design logo for small business', price: 10.00, duration: 50, category: 'graphicDesign', image: 'https://images.unsplash.com/photo-1740059020488-ba2541d7f907?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxncmFwaGljJTIwZGVzaWduJTIwY3JlYXRpdmV8ZW58MXx8fHwxNzY0MzI4ODM1fDA&ixlib=rb-4.1.0&q=80&w=1080', rating: 4.9, postedBy: employers[0] },
-  { id: 18, title: 'contentWriting', description: 'Write product reviews (5 products)', price: 5.00, duration: 28, category: 'contentWriting', image: 'https://images.unsplash.com/photo-1758874385949-cec80d549f67?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjb250ZW50JTIwd3JpdGluZyUyMG5vdGVib29rfGVufDF8fHx8MTc2NDQwMjY1Mnww&ixlib=rb-4.1.0&q=80&w=1080', rating: 4.7, postedBy: employers[1] },
-  { id: 19, title: 'webResearch', description: 'Find contact information for 20 companies', price: 3.75, duration: 22, category: 'webResearch', image: 'https://images.unsplash.com/photo-1762330465551-5217a6dec84f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx3ZWIlMjByZXNlYXJjaCUyMGJyb3dzZXJ8ZW58MXx8fHwxNzY0NDAyNjUyfDA&ixlib=rb-4.1.0&q=80&w=1080', rating: 4.6, postedBy: employers[2] },
-  { id: 20, title: 'translation', description: 'Translate website content (400 words)', price: 6.50, duration: 38, category: 'translation', image: 'https://images.unsplash.com/photo-1620969427101-7a2bb6d83273?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx0cmFuc2xhdGlvbiUyMGxhbmd1YWdlfGVufDF8fHx8MTc2NDMxNDY4OHww&ixlib=rb-4.1.0&q=80&w=1080', rating: 4.8, postedBy: employers[3] },
+  { id: 16, title: 'typing', description: 'Transcribe 15-minute audio recording', price: 5.50, duration: 35, category: 'typing', image: 'https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx0eXBpbmclMjBrZXlib2FyZHxlbnwxfHx8fDE3NjQ0MDI2NDh8MA&ixlib=rb-4.1.0&q=80&w=1080', postedBy: employers[7] },
+  { id: 17, title: 'graphicDesign', description: 'Design logo for small business', price: 10.00, duration: 50, category: 'graphicDesign', image: 'https://images.unsplash.com/photo-1740059020488-ba2541d7f907?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxncmFwaGljJTIwZGVzaWduJTIwY3JlYXRpdmV8ZW58MXx8fHwxNzY0MzI4ODM1fDA&ixlib=rb-4.1.0&q=80&w=1080', postedBy: employers[0] },
+  { id: 18, title: 'contentWriting', description: 'Write product reviews (5 products)', price: 5.00, duration: 28, category: 'contentWriting', image: 'https://images.unsplash.com/photo-1758874385949-cec80d549f67?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjb250ZW50JTIwd3JpdGluZyUyMG5vdGVib29rfGVufDF8fHx8MTc2NDQwMjY1Mnww&ixlib=rb-4.1.0&q=80&w=1080', postedBy: employers[1] },
+  { id: 19, title: 'webResearch', description: 'Find contact information for 20 companies', price: 3.75, duration: 22, category: 'webResearch', image: 'https://images.unsplash.com/photo-1762330465551-5217a6dec84f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx3ZWIlMjByZXNlYXJjaCUyMGJyb3dzZXJ8ZW58MXx8fHwxNzY0NDAyNjUyfDA&ixlib=rb-4.1.0&q=80&w=1080', postedBy: employers[2] },
+  { id: 20, title: 'translation', description: 'Translate website content (400 words)', price: 6.50, duration: 38, category: 'translation', image: 'https://images.unsplash.com/photo-1620969427101-7a2bb6d83273?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx0cmFuc2xhdGlvbiUyMGxhbmd1YWdlfGVufDF8fHx8MTc2NDMxNDY4OHww&ixlib=rb-4.1.0&q=80&w=1080', postedBy: employers[3] },
 ];
 
 const TASKS_PER_PAGE = 5;
+
+const allCategories = ['dataEntry', 'translation', 'socialMedia', 'survey', 'typing', 'videoEditing', 'graphicDesign', 'voiceOver', 'contentWriting', 'webResearch'];
 
 export function ExtraWork({ language, user, setUser, onNavigate }: ExtraWorkProps) {
   const t = translations[language];
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedTask, setSelectedTask] = useState<typeof initialTasks[0] | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [showFilters, setShowFilters] = useState(false);
   
-  // Abunəliyə uyğun tapşırıqları sırala
-  const getSortedTasks = () => {
-    const tasksCopy = [...initialTasks];
-    
+  // Filter states
+  const [priceRange, setPriceRange] = useState({ min: 0, max: 15 });
+  const [durationRange, setDurationRange] = useState({ min: 0, max: 60 });
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+
+  // Reytinq hesablanması - abunəliyə görə
+  const getRatingForTask = (basePrice: number) => {
     if (user.subscription === 'basic') {
-      // Basic: Ucuzdan bahaya (aşağı reytinqli tapşırıqlar önə)
-      return tasksCopy.sort((a, b) => a.price - b.price);
+      // Basic: 3.5-4.2 aralığında
+      return parseFloat((3.5 + Math.random() * 0.7).toFixed(1));
     } else if (user.subscription === 'premium') {
-      // Premium: Orta qiymətli tapşırıqlar önə
-      return tasksCopy.sort((a, b) => {
-        const aPriority = Math.abs(a.price - 5); // 5 dollar ətrafında
+      // Premium: 4.3-4.7 aralığında
+      return parseFloat((4.3 + Math.random() * 0.4).toFixed(1));
+    } else if (user.subscription === 'pro') {
+      // Pro: 4.8-5.0 aralığında
+      return parseFloat((4.8 + Math.random() * 0.2).toFixed(1));
+    }
+    return 4.0;
+  };
+
+  // Tapşırıqları reytinqlə birlikdə hazırla
+  const tasksWithRatings = initialTasks.map(task => ({
+    ...task,
+    rating: getRatingForTask(task.price)
+  }));
+
+  // Filtirləmə funksiyası
+  const getFilteredTasks = () => {
+    let filtered = [...tasksWithRatings];
+
+    // Qiymət filtri
+    filtered = filtered.filter(task => 
+      task.price >= priceRange.min && task.price <= priceRange.max
+    );
+
+    // Müddət filtri
+    filtered = filtered.filter(task => 
+      task.duration >= durationRange.min && task.duration <= durationRange.max
+    );
+
+    // Kateqoriya filtri
+    if (selectedCategories.length > 0) {
+      filtered = filtered.filter(task => 
+        selectedCategories.includes(task.category)
+      );
+    }
+
+    // Abunəliyə görə sıralama
+    if (user.subscription === 'basic') {
+      filtered.sort((a, b) => a.price - b.price);
+    } else if (user.subscription === 'premium') {
+      filtered.sort((a, b) => {
+        const aPriority = Math.abs(a.price - 5);
         const bPriority = Math.abs(b.price - 5);
         return aPriority - bPriority;
       });
     } else if (user.subscription === 'pro') {
-      // Pro: Bahadan ucuza (yüksək reytinqli tapşırıqlar önə)
-      return tasksCopy.sort((a, b) => b.price - a.price);
+      filtered.sort((a, b) => b.price - a.price);
     }
-    
-    return tasksCopy;
+
+    return filtered;
   };
-  
-  const [availableTasks, setAvailableTasks] = useState(getSortedTasks());
+
+  const [availableTasks, setAvailableTasks] = useState(getFilteredTasks());
+
+  // Filtrləri tətbiq et
+  useEffect(() => {
+    setAvailableTasks(getFilteredTasks());
+    setCurrentPage(1);
+  }, [priceRange, durationRange, selectedCategories, user.subscription]);
 
   const totalPages = Math.ceil(availableTasks.length / TASKS_PER_PAGE);
   const startIndex = (currentPage - 1) * TASKS_PER_PAGE;
   const currentTasks = availableTasks.slice(startIndex, startIndex + TASKS_PER_PAGE);
+
+  const handleCategoryToggle = (category: string) => {
+    if (selectedCategories.includes(category)) {
+      setSelectedCategories(selectedCategories.filter(c => c !== category));
+    } else {
+      setSelectedCategories([...selectedCategories, category]);
+    }
+  };
+
+  const clearFilters = () => {
+    setPriceRange({ min: 0, max: 15 });
+    setDurationRange({ min: 0, max: 60 });
+    setSelectedCategories([]);
+  };
 
   const handleApplyTask = (task: typeof initialTasks[0]) => {
     const pendingJob: PendingJob = {
@@ -377,10 +513,8 @@ export function ExtraWork({ language, user, setUser, onNavigate }: ExtraWorkProp
       status: 'pending'
     };
 
-    // Tapşırığı siyahıdan sil
     setAvailableTasks(prev => prev.filter(t => t.id !== task.id));
 
-    // İstifadəçiyə əlavə et
     setUser({
       ...user,
       pendingJobs: [...(user.pendingJobs || []), pendingJob]
@@ -389,9 +523,8 @@ export function ExtraWork({ language, user, setUser, onNavigate }: ExtraWorkProp
     toast.info(t.waitingApproval);
     setSelectedTask(null);
 
-    // 10 saniyə sonra təsdiq et (random)
     setTimeout(() => {
-      const isApproved = Math.random() > 0.3; // 70% təsdiq, 30% rədd
+      const isApproved = Math.random() > 0.3;
 
       setUser(prevUser => {
         if (isApproved) {
@@ -404,28 +537,29 @@ export function ExtraWork({ language, user, setUser, onNavigate }: ExtraWorkProp
             source: task.title + ' Task'
           };
 
-          // Reytinq hesablanması: təsdiq +0.3%
-          const ratingIncrease = 0.3;
-          const newRating = Math.min(5, prevUser.rating + (ratingIncrease / 100) * 5); // 0.3% of 5 = 0.015
+          // Hər 5 təsdiqlənən tapşırıqdan bir reytinq artımı
+          const newCompletedTasks = prevUser.completedTasks + 1;
+          let newRating = prevUser.rating;
+          
+          if (newCompletedTasks % 5 === 0) {
+            // Hər 5 tapşırıqdan bir ortalama artım (0.1-0.2 arası)
+            const ratingIncrease = 0.1 + Math.random() * 0.1;
+            newRating = Math.min(5, prevUser.rating + ratingIncrease);
+          }
 
           return {
             ...prevUser,
             balance: prevUser.balance + task.price,
-            completedTasks: prevUser.completedTasks + 1,
-            rating: parseFloat(newRating.toFixed(2)), // 2 ondalık basamaq
+            completedTasks: newCompletedTasks,
+            rating: parseFloat(newRating.toFixed(1)),
             pendingJobs: prevUser.pendingJobs?.map(j => 
               j.id === task.id ? { ...j, status: 'approved' as const } : j
             ) || [],
             transactions: [newTransaction, ...prevUser.transactions]
           };
         } else {
-          // Reytinq hesablanması: rədd -0.2%
-          const ratingDecrease = 0.2;
-          const newRating = Math.max(0, prevUser.rating - (ratingDecrease / 100) * 5); // 0.2% of 5 = 0.01
-
           return {
             ...prevUser,
-            rating: parseFloat(newRating.toFixed(2)), // 2 ondalık basamaq
             pendingJobs: prevUser.pendingJobs?.map(j => 
               j.id === task.id ? { ...j, status: 'rejected' as const } : j
             ) || []
@@ -456,9 +590,11 @@ export function ExtraWork({ language, user, setUser, onNavigate }: ExtraWorkProp
   };
 
   const handleTaskCreated = (newTask: any) => {
-    // Yeni tapşırığı siyahının əvvəlinə əlavə et
-    setAvailableTasks(prev => [newTask, ...prev]);
-    // İlk səhifəyə keç
+    const taskWithRating = {
+      ...newTask,
+      rating: getRatingForTask(newTask.price)
+    };
+    setAvailableTasks(prev => [taskWithRating, ...prev]);
     setCurrentPage(1);
   };
 
@@ -469,18 +605,107 @@ export function ExtraWork({ language, user, setUser, onNavigate }: ExtraWorkProp
         <div className="bg-gradient-to-br from-purple-600 via-pink-500 to-orange-500 rounded-3xl p-6 shadow-2xl text-white">
           <div className="flex items-center justify-between mb-2">
             <h1>{t.extraWork}</h1>
-            <button
-              onClick={() => setIsDialogOpen(true)}
-              className="bg-white/20 hover:bg-white/30 backdrop-blur-sm p-3 rounded-full transition-all hover:scale-110 active:scale-95"
-              title={t.addTask}
-            >
-              <Plus size={24} className="text-white" />
-            </button>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setShowFilters(!showFilters)}
+                className={`backdrop-blur-sm p-3 rounded-full transition-all hover:scale-110 active:scale-95 ${
+                  showFilters ? 'bg-white/30' : 'bg-white/20 hover:bg-white/30'
+                }`}
+                title={showFilters ? t.hideFilters : t.showFilters}
+              >
+                <SlidersHorizontal size={24} className="text-white" />
+              </button>
+              <button
+                onClick={() => setIsDialogOpen(true)}
+                className="bg-white/20 hover:bg-white/30 backdrop-blur-sm p-3 rounded-full transition-all hover:scale-110 active:scale-95"
+                title={t.addTask}
+              >
+                <Plus size={24} className="text-white" />
+              </button>
+            </div>
           </div>
           <p className="text-sm text-white/90">
             {t.totalTasks.replace('{count}', availableTasks.length.toString())}
           </p>
         </div>
+
+        {/* Filters Panel */}
+        {showFilters && (
+          <div className="bg-white rounded-3xl p-6 shadow-xl space-y-6">
+            <div className="flex items-center justify-between">
+              <h3 className="text-gray-800 flex items-center gap-2">
+                <Filter size={20} className="text-purple-600" />
+                {t.filters}
+              </h3>
+              <button
+                onClick={clearFilters}
+                className="text-sm text-purple-600 hover:text-purple-700 underline"
+              >
+                {t.clearFilters}
+              </button>
+            </div>
+
+            {/* Price Range */}
+            <div>
+              <label className="text-sm text-gray-600 mb-2 block">{t.priceRange}</label>
+              <div className="space-y-3">
+                <input
+                  type="range"
+                  min="0"
+                  max="15"
+                  step="0.5"
+                  value={priceRange.max}
+                  onChange={(e) => setPriceRange({ ...priceRange, max: parseFloat(e.target.value) })}
+                  className="w-full accent-purple-600"
+                />
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-gray-500">${priceRange.min}</span>
+                  <span className="text-purple-600">${priceRange.max}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Duration Range */}
+            <div>
+              <label className="text-sm text-gray-600 mb-2 block">{t.durationRange}</label>
+              <div className="space-y-3">
+                <input
+                  type="range"
+                  min="0"
+                  max="60"
+                  step="5"
+                  value={durationRange.max}
+                  onChange={(e) => setDurationRange({ ...durationRange, max: parseInt(e.target.value) })}
+                  className="w-full accent-purple-600"
+                />
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-gray-500">{durationRange.min} {t.minutes}</span>
+                  <span className="text-purple-600">{durationRange.max} {t.minutes}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Categories */}
+            <div>
+              <label className="text-sm text-gray-600 mb-3 block">{t.categories}</label>
+              <div className="grid grid-cols-2 gap-2">
+                {allCategories.map(category => (
+                  <button
+                    key={category}
+                    onClick={() => handleCategoryToggle(category)}
+                    className={`p-3 rounded-xl border-2 transition-all text-sm ${
+                      selectedCategories.includes(category)
+                        ? 'border-purple-600 bg-purple-50 text-purple-700'
+                        : 'border-gray-200 hover:border-purple-300 text-gray-700'
+                    }`}
+                  >
+                    {t[category as keyof typeof t]}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
 
         {availableTasks.length === 0 ? (
           <div className="bg-white rounded-3xl p-8 shadow-xl text-center">
@@ -488,58 +713,60 @@ export function ExtraWork({ language, user, setUser, onNavigate }: ExtraWorkProp
           </div>
         ) : (
           <>
-            {/* Pagination Info - Daha canlı */}
-            <div className="relative bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 rounded-3xl p-1 shadow-2xl">
-              <div className="bg-white rounded-[22px] p-4">
-                <div className="flex items-center justify-between">
-                  <button
-                    onClick={goToPreviousPage}
-                    disabled={currentPage === 1}
-                    className={`flex items-center gap-2 px-5 py-3 rounded-2xl transition-all duration-300 ${
-                      currentPage === 1
-                        ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                        : 'bg-gradient-to-r from-purple-600 via-pink-600 to-orange-600 text-white hover:shadow-2xl transform hover:scale-110 animate-pulse'
-                    }`}
-                  >
-                    <ChevronLeft size={24} />
-                  </button>
-                  
-                  <div className="text-center">
-                    <p className="text-2xl bg-gradient-to-r from-purple-600 via-pink-600 to-orange-600 bg-clip-text text-transparent">
-                      {currentPage} {t.of} {totalPages}
-                    </p>
-                    <div className="flex items-center gap-2 mt-3">
-                      {Array.from({ length: totalPages }, (_, i) => (
-                        <button
-                          key={i}
-                          onClick={() => {
-                            setCurrentPage(i + 1);
-                            window.scrollTo({ top: 0, behavior: 'smooth' });
-                          }}
-                          className={`h-3 rounded-full transition-all duration-300 ${
-                            currentPage === i + 1
-                              ? 'bg-gradient-to-r from-purple-600 to-pink-600 w-10 shadow-lg'
-                              : 'bg-gray-300 w-3 hover:bg-purple-400 hover:w-6'
-                          }`}
-                        />
-                      ))}
+            {/* Pagination Info */}
+            {totalPages > 1 && (
+              <div className="relative bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 rounded-3xl p-1 shadow-2xl">
+                <div className="bg-white rounded-[22px] p-4">
+                  <div className="flex items-center justify-between">
+                    <button
+                      onClick={goToPreviousPage}
+                      disabled={currentPage === 1}
+                      className={`flex items-center gap-2 px-5 py-3 rounded-2xl transition-all duration-300 ${
+                        currentPage === 1
+                          ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                          : 'bg-gradient-to-r from-purple-600 via-pink-600 to-orange-600 text-white hover:shadow-2xl transform hover:scale-110'
+                      }`}
+                    >
+                      <ChevronLeft size={24} />
+                    </button>
+                    
+                    <div className="text-center">
+                      <p className="text-2xl bg-gradient-to-r from-purple-600 via-pink-600 to-orange-600 bg-clip-text text-transparent">
+                        {currentPage} {t.of} {totalPages}
+                      </p>
+                      <div className="flex items-center gap-2 mt-3">
+                        {Array.from({ length: totalPages }, (_, i) => (
+                          <button
+                            key={i}
+                            onClick={() => {
+                              setCurrentPage(i + 1);
+                              window.scrollTo({ top: 0, behavior: 'smooth' });
+                            }}
+                            className={`h-3 rounded-full transition-all duration-300 ${
+                              currentPage === i + 1
+                                ? 'bg-gradient-to-r from-purple-600 to-pink-600 w-10 shadow-lg'
+                                : 'bg-gray-300 w-3 hover:bg-purple-400 hover:w-6'
+                            }`}
+                          />
+                        ))}
+                      </div>
                     </div>
+                    
+                    <button
+                      onClick={goToNextPage}
+                      disabled={currentPage === totalPages}
+                      className={`flex items-center gap-2 px-5 py-3 rounded-2xl transition-all duration-300 ${
+                        currentPage === totalPages
+                          ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                          : 'bg-gradient-to-r from-purple-600 via-pink-600 to-orange-600 text-white hover:shadow-2xl transform hover:scale-110'
+                      }`}
+                    >
+                      <ChevronRight size={24} />
+                    </button>
                   </div>
-                  
-                  <button
-                    onClick={goToNextPage}
-                    disabled={currentPage === totalPages}
-                    className={`flex items-center gap-2 px-5 py-3 rounded-2xl transition-all duration-300 ${
-                      currentPage === totalPages
-                        ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                        : 'bg-gradient-to-r from-purple-600 via-pink-600 to-orange-600 text-white hover:shadow-2xl transform hover:scale-110 animate-pulse'
-                    }`}
-                  >
-                    <ChevronRight size={24} />
-                  </button>
                 </div>
               </div>
-            </div>
+            )}
 
             {/* Available Tasks */}
             <div className="bg-white rounded-3xl p-6 shadow-xl">
@@ -593,24 +820,26 @@ export function ExtraWork({ language, user, setUser, onNavigate }: ExtraWorkProp
             </div>
 
             {/* Bottom Pagination */}
-            <div className="flex items-center justify-center gap-2">
-              {Array.from({ length: totalPages }, (_, i) => (
-                <button
-                  key={i}
-                  onClick={() => {
-                    setCurrentPage(i + 1);
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
-                  }}
-                  className={`px-4 py-2 rounded-xl transition-all ${
-                    currentPage === i + 1
-                      ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow-lg'
-                      : 'bg-white text-gray-600 hover:bg-gray-100'
-                  }`}
-                >
-                  {i + 1}
-                </button>
-              ))}
-            </div>
+            {totalPages > 1 && (
+              <div className="flex items-center justify-center gap-2">
+                {Array.from({ length: totalPages }, (_, i) => (
+                  <button
+                    key={i}
+                    onClick={() => {
+                      setCurrentPage(i + 1);
+                      window.scrollTo({ top: 0, behavior: 'smooth' });
+                    }}
+                    className={`px-4 py-2 rounded-xl transition-all ${
+                      currentPage === i + 1
+                        ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow-lg'
+                        : 'bg-white text-gray-600 hover:bg-gray-100'
+                    }`}
+                  >
+                    {i + 1}
+                  </button>
+                ))}
+              </div>
+            )}
           </>
         )}
 

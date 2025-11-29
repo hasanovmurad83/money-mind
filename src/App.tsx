@@ -12,7 +12,7 @@ import { Login } from './components/Login';
 import { SignUp } from './components/SignUp';
 import { Support } from './components/Support';
 import { Chatbot } from './components/Chatbot';
-// import { Home as HomeIcon, User, Wallet as WalletIcon, Settings as SettingsIcon, Briefcase } from 'lucide-react';
+import { Home as HomeIcon, User, Wallet as WalletIcon, Settings as SettingsIcon, Briefcase } from 'lucide-react';
 import { Toaster } from './components/ui/sonner';
 
 export type Language = 'az' | 'en' | 'ru' | 'tr' | 'de' | 'fr' | 'es' | 'ar';
@@ -198,7 +198,7 @@ export default function App() {
                   : 'text-white/70 hover:text-white hover:scale-105'
               }`}
             >
-              
+              <HomeIcon size={24} className={currentPage === 'home' ? 'animate-pulse' : ''} />
               <span className="text-xs">
                 {language === 'az' ? 'Əsas' : 
                  language === 'en' ? 'Home' : 
@@ -221,7 +221,7 @@ export default function App() {
                   : 'text-white/70 hover:text-white hover:scale-105'
               }`}
             >
-              
+              <Briefcase size={24} className={currentPage === 'extrawork' ? 'animate-pulse' : ''} />
               <span className="text-xs">
                 {language === 'az' ? 'Əlavə İş' : 
                  language === 'en' ? 'Extra Work' : 
@@ -244,7 +244,7 @@ export default function App() {
                   : 'text-white/70 hover:text-white hover:scale-105'
               }`}
             >
-              
+              <WalletIcon size={24} className={currentPage === 'wallet' ? 'animate-pulse' : ''} />
               <span className="text-xs">
                 {language === 'az' ? 'Pulqabı' : 
                  language === 'en' ? 'Wallet' : 
@@ -267,7 +267,7 @@ export default function App() {
                   : 'text-white/70 hover:text-white hover:scale-105'
               }`}
             >
-             
+              <User size={24} className={currentPage === 'profile' ? 'animate-pulse' : ''} />
               <span className="text-xs">
                 {language === 'az' ? 'Profil' : 
                  language === 'en' ? 'Profile' : 
@@ -290,7 +290,7 @@ export default function App() {
                   : 'text-white/70 hover:text-white hover:scale-105'
               }`}
             >
-              
+              <SettingsIcon size={24} className={currentPage === 'settings' ? 'animate-spin' : ''} />
               <span className="text-xs">
                 {language === 'az' ? 'Ayarlar' : 
                  language === 'en' ? 'Settings' : 

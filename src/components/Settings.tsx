@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Language } from '../App';
-import { ChevronLeft, Globe, Bell, Shield, HelpCircle, LogOut, ChevronRight, Palette, Image } from 'lucide-react';
+import { ChevronLeft, Globe, Shield, HelpCircle, LogOut, ChevronRight, Palette, Image } from 'lucide-react';
 
 interface SettingsProps {
   language: Language;
@@ -18,7 +18,6 @@ const translations = {
     settings: 'Ayarlar',
     back: 'Geri',
     language: 'Dil',
-    notifications: 'Bildirişlər',
     privacy: 'Məxfilik',
     help: 'Kömək',
     logout: 'Çıxış',
@@ -43,7 +42,6 @@ const translations = {
     settings: 'Settings',
     back: 'Back',
     language: 'Language',
-    notifications: 'Notifications',
     privacy: 'Privacy',
     help: 'Help',
     logout: 'Logout',
@@ -68,7 +66,6 @@ const translations = {
     settings: 'Настройки',
     back: 'Назад',
     language: 'Язык',
-    notifications: 'Уведомления',
     privacy: 'Конфиденциальность',
     help: 'Помощь',
     logout: 'Выход',
@@ -93,7 +90,6 @@ const translations = {
     settings: 'Ayarlar',
     back: 'Geri',
     language: 'Dil',
-    notifications: 'Bildirimler',
     privacy: 'Gizlilik',
     help: 'Yardım',
     logout: 'Çıkış',
@@ -118,7 +114,6 @@ const translations = {
     settings: 'Einstellungen',
     back: 'Zurück',
     language: 'Sprache',
-    notifications: 'Benachrichtigungen',
     privacy: 'Datenschutz',
     help: 'Hilfe',
     logout: 'Abmelden',
@@ -143,7 +138,6 @@ const translations = {
     settings: 'Paramètres',
     back: 'Retour',
     language: 'Langue',
-    notifications: 'Notifications',
     privacy: 'Confidentialité',
     help: 'Aide',
     logout: 'Déconnexion',
@@ -168,7 +162,6 @@ const translations = {
     settings: 'Configuración',
     back: 'Atrás',
     language: 'Idioma',
-    notifications: 'Notificaciones',
     privacy: 'Privacidad',
     help: 'Ayuda',
     logout: 'Cerrar Sesión',
@@ -193,7 +186,6 @@ const translations = {
     settings: 'الإعدادات',
     back: 'رجوع',
     language: 'اللغة',
-    notifications: 'الإشعارات',
     privacy: 'الخصوصية',
     help: 'المساعدة',
     logout: 'تسجيل الخروج',
@@ -333,17 +325,6 @@ export function Settings({ language, setLanguage, onNavigate, navColor, setNavCo
               </button>
             </div>
           </div>
-
-          {/* Notifications */}
-          <button className="w-full p-4 border-b border-gray-200 flex items-center justify-between hover:bg-gradient-to-r hover:from-blue-50 hover:to-blue-100 transition-all">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center shadow-lg">
-                <Bell className="text-white" size={20} />
-              </div>
-              <span className="text-gray-800">{t.notifications}</span>
-            </div>
-            <ChevronRight className="text-gray-400" size={20} />
-          </button>
 
           {/* Privacy */}
           <button className="w-full p-4 border-b border-gray-200 flex items-center justify-between hover:bg-gradient-to-r hover:from-green-50 hover:to-green-100 transition-all">
