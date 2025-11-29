@@ -33,6 +33,7 @@ export interface Transaction {
   date: string;
   category?: string;
   source?: string;
+  merchant?: string;
 }
 
 export interface PostedJob {
@@ -61,6 +62,15 @@ export interface PendingJob {
   status: 'pending' | 'approved' | 'rejected';
 }
 
+export interface Achievement {
+  id: string;
+  type: 'task' | 'transfer' | 'deposit' | 'withdraw' | 'card' | 'subscription';
+  unlocked: boolean;
+  unlockedDate?: string;
+  progress: number;
+  target: number;
+}
+
 export interface User {
   name: string;
   email: string;
@@ -72,6 +82,7 @@ export interface User {
   transactions: Transaction[];
   pendingJobs?: PendingJob[];
   cards?: Card[];
+  achievements?: Achievement[];
 }
 
 export default function App() {
@@ -94,32 +105,58 @@ export default function App() {
       { id: 1, cardNumber: '4532123456781234', cardHolder: 'Aysel Məmmədova', balance: 250, type: 'visa' },
       { id: 2, cardNumber: '5412345678901234', cardHolder: 'Aysel Məmmədova', balance: 180, type: 'mastercard' },
     ],
+    achievements: [
+      { id: 'first_task', type: 'task', unlocked: true, unlockedDate: '2024-11-20', progress: 1, target: 1 },
+      { id: '5_tasks', type: 'task', unlocked: true, unlockedDate: '2024-11-21', progress: 5, target: 5 },
+      { id: '10_tasks', type: 'task', unlocked: true, unlockedDate: '2024-11-22', progress: 10, target: 10 },
+      { id: '50_tasks', type: 'task', unlocked: true, unlockedDate: '2024-11-25', progress: 50, target: 50 },
+      { id: '100_tasks', type: 'task', unlocked: true, unlockedDate: '2024-11-27', progress: 100, target: 100 },
+      { id: '200_tasks', type: 'task', unlocked: false, unlockedDate: undefined, progress: 124, target: 200 },
+      { id: 'first_transfer', type: 'transfer', unlocked: true, unlockedDate: '2024-11-23', progress: 1, target: 1 },
+      { id: 'first_deposit', type: 'deposit', unlocked: true, unlockedDate: '2024-11-24', progress: 1, target: 1 },
+      { id: 'first_withdraw', type: 'withdraw', unlocked: true, unlockedDate: '2024-11-26', progress: 1, target: 1 },
+      { id: 'first_card', type: 'card', unlocked: true, unlockedDate: '2024-11-20', progress: 1, target: 1 },
+      { id: '3_cards', type: 'card', unlocked: false, unlockedDate: undefined, progress: 2, target: 3 },
+      { id: 'premium_sub', type: 'subscription', unlocked: true, unlockedDate: '2024-11-22', progress: 1, target: 1 },
+    ],
     transactions: [
       { id: 1, type: 'received', description: 'Data daxil etmə tapşırığı', amount: 25, date: '2024-11-28', source: 'Data Entry Task' },
-      { id: 2, type: 'payment', description: 'Starbucks Kafe', amount: -12, date: '2024-11-28', category: 'Kafe' },
+      { id: 2, type: 'payment', description: 'Starbucks Kafe', amount: -12, date: '2024-11-28', category: 'Kafe', merchant: 'Starbucks' },
       { id: 3, type: 'received', description: 'Tərcümə tapşırığı', amount: 35, date: '2024-11-27', source: 'Translation Task' },
-      { id: 4, type: 'payment', description: 'GoKart əyləncə mərkəzi', amount: -45, date: '2024-11-27', category: 'Əyləncə' },
+      { id: 4, type: 'payment', description: 'GoKart əyləncə mərkəzi', amount: -45, date: '2024-11-27', category: 'Əyləncə', merchant: 'GoKart' },
       { id: 5, type: 'received', description: 'Sosial media tapşırığı', amount: 15, date: '2024-11-27', source: 'Social Media Task' },
-      { id: 6, type: 'payment', description: 'McDonalds', amount: -8, date: '2024-11-26', category: 'Restoran' },
+      { id: 6, type: 'payment', description: 'McDonalds', amount: -8, date: '2024-11-26', category: 'Restoran', merchant: 'McDonalds' },
       { id: 7, type: 'withdraw', description: 'Bank çıxarışı', amount: -50, date: '2024-11-26' },
       { id: 8, type: 'received', description: 'Sorğu tapşırığı', amount: 20, date: '2024-11-26', source: 'Survey Task' },
-      { id: 9, type: 'payment', description: 'Taksi', amount: -15, date: '2024-11-25', category: 'Nəqliyyat' },
+      { id: 9, type: 'payment', description: 'Taksi', amount: -15, date: '2024-11-25', category: 'Nəqliyyat', merchant: 'Bolt Taxi' },
       { id: 10, type: 'received', description: 'Mətn yazma tapşırığı', amount: 30, date: '2024-11-25', source: 'Typing Task' },
-      { id: 11, type: 'payment', description: 'CinemaPlus', amount: -18, date: '2024-11-25', category: 'Əyləncə' },
+      { id: 11, type: 'payment', description: 'CinemaPlus', amount: -18, date: '2024-11-25', category: 'Əyləncə', merchant: 'CinemaPlus' },
       { id: 12, type: 'deposit', description: 'Vəsait əlavə edildi', amount: 100, date: '2024-11-24' },
-      { id: 13, type: 'payment', description: 'Bolt taksi', amount: -10, date: '2024-11-24', category: 'Nəqliyyat' },
+      { id: 13, type: 'payment', description: 'Bolt taksi', amount: -10, date: '2024-11-24', category: 'Nəqliyyat', merchant: 'Bolt Taxi' },
       { id: 14, type: 'received', description: 'Video editing tapşırığı', amount: 40, date: '2024-11-23', source: 'Video Task' },
-      { id: 15, type: 'payment', description: 'KFC', amount: -14, date: '2024-11-23', category: 'Restoran' },
+      { id: 15, type: 'payment', description: 'KFC', amount: -14, date: '2024-11-23', category: 'Restoran', merchant: 'KFC' },
+      { id: 16, type: 'payment', description: 'Starbucks Kafe', amount: -23, date: '2024-11-22', category: 'Kafe', merchant: 'Starbucks' },
+      { id: 17, type: 'payment', description: 'KFC', amount: -20, date: '2024-11-21', category: 'Restoran', merchant: 'KFC' },
+      { id: 18, type: 'payment', description: 'Costa Coffee', amount: -8, date: '2024-11-20', category: 'Kafe', merchant: 'Costa Coffee' },
+      { id: 19, type: 'payment', description: 'Park Bulvar Restoran', amount: -35, date: '2024-11-19', category: 'Restoran', merchant: 'Park Bulvar' },
+      { id: 20, type: 'payment', description: 'Uber taksi', amount: -12, date: '2024-11-18', category: 'Nəqliyyat', merchant: 'Uber' },
     ]
   });
 
-  const handleLogin = (email: string) => {
-    setUser({ ...user, email });
+  const handleLogin = (name: string, email: string) => {
+    setUser({ ...user, name, email });
     setIsAuthenticated(true);
   };
 
-  const handleSignUp = (name: string, email: string) => {
-    setUser({ ...user, name, email, balance: 0, completedTasks: 0, rating: 0, subscription: 'basic', transactions: [], cards: [] });
+  const handleSignUp = (name: string, email: string, cardNumber: string) => {
+    const newCard: Card = {
+      id: 1,
+      cardNumber: cardNumber,
+      cardHolder: name,
+      balance: 100,
+      type: cardNumber.startsWith('4') ? 'visa' : cardNumber.startsWith('5') ? 'mastercard' : 'amex'
+    };
+    setUser({ ...user, name, email, balance: 100, completedTasks: 0, rating: 0, subscription: 'basic', transactions: [], cards: [newCard] });
     setIsAuthenticated(true);
   };
 

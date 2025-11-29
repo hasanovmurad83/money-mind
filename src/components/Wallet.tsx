@@ -56,6 +56,12 @@ const translations = {
     withdrawToCard: 'Karta çıxarış',
     cardToBalance: 'Kartdan balansa',
     transferFromCardToBalance: 'Kartdan balansa köçürmə',
+    detailedExpenses: 'Ətraflı Xərc Siyahısı',
+    noExpenses: 'Xərc yoxdur',
+    selectPaymentMethod: 'Ödəniş üsulunu seçin',
+    m10: 'M10',
+    binance: 'Binance',
+    selectSource: 'Mənbə seçin',
   },
   en: {
     wallet: 'Wallet',
@@ -102,6 +108,12 @@ const translations = {
     withdrawToCard: 'Withdraw to Card',
     cardToBalance: 'Card to Balance',
     transferFromCardToBalance: 'Transfer from Card to Balance',
+    detailedExpenses: 'Detailed Expenses',
+    noExpenses: 'No expenses',
+    selectPaymentMethod: 'Select Payment Method',
+    m10: 'M10',
+    binance: 'Binance',
+    selectSource: 'Select Source',
   },
   ru: {
     wallet: 'Кошелек',
@@ -148,6 +160,12 @@ const translations = {
     withdrawToCard: 'Вывести на карту',
     cardToBalance: 'Карта на баланс',
     transferFromCardToBalance: 'Перевод с карты на баланс',
+    detailedExpenses: 'Подробные расходы',
+    noExpenses: 'Нет расходов',
+    selectPaymentMethod: 'Выберите способ оплаты',
+    m10: 'M10',
+    binance: 'Binance',
+    selectSource: 'Выберите источник',
   },
   tr: {
     wallet: 'Cüzdan',
@@ -194,6 +212,12 @@ const translations = {
     withdrawToCard: 'Karta Çekme',
     cardToBalance: 'Karttan Bakiyeye',
     transferFromCardToBalance: 'Karttan bakiyeye transfer',
+    detailedExpenses: 'Detaylı Harcamalar',
+    noExpenses: 'Harcama yok',
+    selectPaymentMethod: 'Ödeme yöntemini seçin',
+    m10: 'M10',
+    binance: 'Binance',
+    selectSource: 'Kaynak seçin',
   },
   de: {
     wallet: 'Geldbörse',
@@ -240,6 +264,12 @@ const translations = {
     withdrawToCard: 'Auf Karte abheben',
     cardToBalance: 'Karte zu Guthaben',
     transferFromCardToBalance: 'Überweisung von Karte auf Guthaben',
+    detailedExpenses: 'Detaillierte Ausgaben',
+    noExpenses: 'Keine Ausgaben',
+    selectPaymentMethod: 'Zahlungsmethode wählen',
+    m10: 'M10',
+    binance: 'Binance',
+    selectSource: 'Quelle auswählen',
   },
   fr: {
     wallet: 'Portefeuille',
@@ -286,6 +316,12 @@ const translations = {
     withdrawToCard: 'Retirer sur carte',
     cardToBalance: 'Carte vers solde',
     transferFromCardToBalance: 'Transfert de la carte vers le solde',
+    detailedExpenses: 'Dépenses détaillées',
+    noExpenses: 'Aucune dépense',
+    selectPaymentMethod: 'Sélectionner le mode de paiement',
+    m10: 'M10',
+    binance: 'Binance',
+    selectSource: 'Sélectionner la source',
   },
   es: {
     wallet: 'Billetera',
@@ -332,6 +368,12 @@ const translations = {
     withdrawToCard: 'Retirar a tarjeta',
     cardToBalance: 'Tarjeta a saldo',
     transferFromCardToBalance: 'Transferir de tarjeta a saldo',
+    detailedExpenses: 'Gastos detallados',
+    noExpenses: 'Sin gastos',
+    selectPaymentMethod: 'Seleccionar método de pago',
+    m10: 'M10',
+    binance: 'Binance',
+    selectSource: 'Seleccionar fuente',
   },
   ar: {
     wallet: 'المحفظة',
@@ -378,6 +420,12 @@ const translations = {
     withdrawToCard: 'سحب إلى البطاقة',
     cardToBalance: 'بطاقة إلى الرصيد',
     transferFromCardToBalance: 'تحويل من البطاقة إلى الرصيد',
+    detailedExpenses: 'النفقات التفصيلية',
+    noExpenses: 'لا توجد نفقات',
+    selectPaymentMethod: 'اختر طريقة الدفع',
+    m10: 'M10',
+    binance: 'Binance',
+    selectSource: 'اختر المصدر',
   },
 };
 
@@ -414,14 +462,22 @@ export function Wallet({ language, user, setUser, onNavigate }: WalletProps) {
   const [selectedCardForWithdraw, setSelectedCardForWithdraw] = useState<number | null>(null);
   const [selectedCardForDeposit, setSelectedCardForDeposit] = useState<number | null>(null);
   const [cardToBalanceAmount, setCardToBalanceAmount] = useState('');
+  const [depositSource, setDepositSource] = useState<'m10' | 'binance' | ''>('');
 
   const handleDeposit = () => {
     const amount = parseFloat(depositAmount);
+    
+    if (!depositSource) {
+      toast.error(t.selectSource);
+      return;
+    }
+    
     if (amount && amount > 0) {
+      const sourceText = depositSource === 'm10' ? 'M10' : 'Binance';
       const newTransaction = {
         id: Date.now(),
         type: 'deposit' as const,
-        description: t.depositSuccess,
+        description: `${t.depositSuccess} (${sourceText})`,
         amount: amount,
         date: new Date().toISOString().split('T')[0]
       };
@@ -432,8 +488,9 @@ export function Wallet({ language, user, setUser, onNavigate }: WalletProps) {
         transactions: [newTransaction, ...user.transactions]
       });
       
-      toast.success(t.depositSuccess);
+      toast.success(`${t.depositSuccess} (${sourceText})`);
       setDepositAmount('');
+      setDepositSource('');
       setShowDepositModal(false);
     }
   };
@@ -765,6 +822,49 @@ export function Wallet({ language, user, setUser, onNavigate }: WalletProps) {
           )}
         </div>
 
+        {/* Detailed Expenses */}
+        {user.transactions.filter(tr => tr.type === 'payment' && tr.merchant).length > 0 && (
+          <div className="bg-gradient-to-br from-pink-50 to-purple-50 rounded-3xl p-6 shadow-xl border-2 border-pink-200">
+            <div className="flex items-center gap-2 mb-4">
+              <ShoppingBag className="text-pink-600" size={24} />
+              <h2 className="text-gray-800">{t.detailedExpenses}</h2>
+            </div>
+            
+            <div className="space-y-3">
+              {user.transactions
+                .filter(tr => tr.type === 'payment' && tr.merchant)
+                .slice(0, 10)
+                .map((transaction) => {
+                  const CategoryIcon = transaction.category ? categoryIcons[transaction.category] : ShoppingBag;
+                  
+                  return (
+                    <div key={transaction.id} className="bg-white rounded-2xl p-4 shadow-md border-2 border-transparent hover:border-pink-300 transition-all">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-pink-500 to-purple-600 flex items-center justify-center text-white shadow-lg">
+                            <CategoryIcon size={22} />
+                          </div>
+                          <div>
+                            <div className="text-gray-800">{transaction.merchant}</div>
+                            <div className="text-xs text-gray-500 mt-1">{transaction.date}</div>
+                            {transaction.category && (
+                              <div className="text-xs text-pink-600 bg-pink-50 px-2 py-0.5 rounded-full mt-1 inline-block">
+                                {transaction.category}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                        <div className="text-red-600 text-xl">
+                          ${Math.abs(transaction.amount).toFixed(2)}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+            </div>
+          </div>
+        )}
+
         {/* Pending Jobs */}
         {user.pendingJobs && user.pendingJobs.length > 0 && (
           <div className="bg-gradient-to-br from-yellow-50 to-orange-50 rounded-3xl p-6 shadow-xl border-2 border-yellow-200">
@@ -860,6 +960,52 @@ export function Wallet({ language, user, setUser, onNavigate }: WalletProps) {
             <div className="bg-white rounded-3xl p-6 max-w-sm w-full shadow-2xl">
               <h3 className="text-gray-800 mb-4 text-xl">{t.addFunds}</h3>
               
+              {/* Payment Method Selection */}
+              <div className="mb-4">
+                <label className="text-sm text-gray-600 mb-2 block">{t.selectPaymentMethod}</label>
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    onClick={() => setDepositSource('m10')}
+                    className={`p-4 rounded-2xl border-2 transition-all transform hover:scale-105 ${
+                      depositSource === 'm10'
+                        ? 'border-purple-600 bg-gradient-to-br from-purple-50 to-pink-50 shadow-lg'
+                        : 'border-gray-300 bg-white hover:border-purple-400'
+                    }`}
+                  >
+                    <div className="flex flex-col items-center gap-2">
+                      <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
+                        depositSource === 'm10'
+                          ? 'bg-gradient-to-br from-purple-600 to-pink-600 text-white'
+                          : 'bg-gray-100 text-gray-600'
+                      }`}>
+                        <DollarSign size={24} />
+                      </div>
+                      <span className="text-gray-800">{t.m10}</span>
+                    </div>
+                  </button>
+                  
+                  <button
+                    onClick={() => setDepositSource('binance')}
+                    className={`p-4 rounded-2xl border-2 transition-all transform hover:scale-105 ${
+                      depositSource === 'binance'
+                        ? 'border-yellow-500 bg-gradient-to-br from-yellow-50 to-orange-50 shadow-lg'
+                        : 'border-gray-300 bg-white hover:border-yellow-400'
+                    }`}
+                  >
+                    <div className="flex flex-col items-center gap-2">
+                      <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
+                        depositSource === 'binance'
+                          ? 'bg-gradient-to-br from-yellow-500 to-orange-600 text-white'
+                          : 'bg-gray-100 text-gray-600'
+                      }`}>
+                        <CreditCard size={24} />
+                      </div>
+                      <span className="text-gray-800">{t.binance}</span>
+                    </div>
+                  </button>
+                </div>
+              </div>
+              
               <div className="mb-4">
                 <label className="text-sm text-gray-600 mb-2 block">{t.amount}</label>
                 <div className="relative">
@@ -876,7 +1022,10 @@ export function Wallet({ language, user, setUser, onNavigate }: WalletProps) {
 
               <div className="flex gap-3">
                 <button
-                  onClick={() => setShowDepositModal(false)}
+                  onClick={() => {
+                    setShowDepositModal(false);
+                    setDepositSource('');
+                  }}
                   className="flex-1 bg-gray-200 text-gray-700 rounded-2xl py-3 hover:bg-gray-300 transition-colors"
                 >
                   {t.cancel}

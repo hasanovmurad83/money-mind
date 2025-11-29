@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import { Language } from '../App';
-import { UserPlus, Mail, Lock, User, ArrowRight, AlertCircle } from 'lucide-react';
+import { UserPlus, Mail, Lock, User, ArrowRight, AlertCircle, CreditCard, Clock } from 'lucide-react';
 
 interface SignUpProps {
   language: Language;
-  onSignUp: (name: string, email: string) => void;
+  onSignUp: (name: string, email: string, cardNumber: string) => void;
   onSwitchToLogin: () => void;
 }
 
@@ -18,6 +18,12 @@ const translations = {
     emailPlaceholder: 'email@example.com',
     password: 'Şifrə',
     passwordPlaceholder: 'Minimum 7 simvol',
+    cardNumber: 'Kart Nömrəsi',
+    cardPlaceholder: '1234 5678 9012 3456',
+    expiryDate: 'Son İstifadə Tarixi',
+    expiryPlaceholder: 'AA/İİ',
+    cvv: 'CVV',
+    cvvPlaceholder: '123',
     signUp: 'Qeydiyyatdan keç',
     haveAccount: 'Artıq hesabınız var?',
     login: 'Daxil ol',
@@ -25,6 +31,9 @@ const translations = {
     nameRequired: 'Ad tələb olunur',
     emailRequired: 'E-poçt tələb olunur',
     passwordTooShort: 'Şifrə ən azı 7 simvol olmalıdır',
+    invalidCard: 'Kart nömrəsi 16 rəqəm olmalıdır',
+    invalidExpiry: 'Son istifadə tarixi düzgün deyil',
+    invalidCvv: 'CVV 3 rəqəm olmalıdır',
   },
   en: {
     createAccount: 'Create Account',
@@ -35,6 +44,12 @@ const translations = {
     emailPlaceholder: 'email@example.com',
     password: 'Password',
     passwordPlaceholder: 'Minimum 7 characters',
+    cardNumber: 'Card Number',
+    cardPlaceholder: '1234 5678 9012 3456',
+    expiryDate: 'Expiry Date',
+    expiryPlaceholder: 'MM/YY',
+    cvv: 'CVV',
+    cvvPlaceholder: '123',
     signUp: 'Sign Up',
     haveAccount: 'Already have an account?',
     login: 'Login',
@@ -42,6 +57,9 @@ const translations = {
     nameRequired: 'Name is required',
     emailRequired: 'Email is required',
     passwordTooShort: 'Password must be at least 7 characters',
+    invalidCard: 'Card number must be 16 digits',
+    invalidExpiry: 'Invalid expiry date',
+    invalidCvv: 'CVV must be 3 digits',
   },
   ru: {
     createAccount: 'Создать Аккаунт',
@@ -52,6 +70,12 @@ const translations = {
     emailPlaceholder: 'email@example.com',
     password: 'Пароль',
     passwordPlaceholder: 'Минимум 7 символов',
+    cardNumber: 'Номер Карты',
+    cardPlaceholder: '1234 5678 9012 3456',
+    expiryDate: 'Срок Действия',
+    expiryPlaceholder: 'ММ/ГГ',
+    cvv: 'CVV',
+    cvvPlaceholder: '123',
     signUp: 'Регистрация',
     haveAccount: 'Уже есть аккаунт?',
     login: 'Войти',
@@ -59,6 +83,9 @@ const translations = {
     nameRequired: 'Имя обязательно',
     emailRequired: 'Email обязателен',
     passwordTooShort: 'Пароль должен содержать минимум 7 символов',
+    invalidCard: 'Номер карты должен содержать 16 цифр',
+    invalidExpiry: 'Неверный срок действия',
+    invalidCvv: 'CVV должен содержать 3 цифры',
   },
   tr: {
     createAccount: 'Hesap Oluştur',
@@ -69,6 +96,12 @@ const translations = {
     emailPlaceholder: 'email@example.com',
     password: 'Şifre',
     passwordPlaceholder: 'En az 7 karakter',
+    cardNumber: 'Kart Numarası',
+    cardPlaceholder: '1234 5678 9012 3456',
+    expiryDate: 'Son Kullanma Tarihi',
+    expiryPlaceholder: 'AA/YY',
+    cvv: 'CVV',
+    cvvPlaceholder: '123',
     signUp: 'Kayıt Ol',
     haveAccount: 'Zaten hesabınız var mı?',
     login: 'Giriş Yap',
@@ -76,6 +109,9 @@ const translations = {
     nameRequired: 'Ad gereklidir',
     emailRequired: 'E-posta gereklidir',
     passwordTooShort: 'Şifre en az 7 karakter olmalıdır',
+    invalidCard: 'Kart numarası 16 hane olmalıdır',
+    invalidExpiry: 'Geçersiz son kullanma tarihi',
+    invalidCvv: 'CVV 3 hane olmalıdır',
   },
   de: {
     createAccount: 'Konto Erstellen',
@@ -86,6 +122,12 @@ const translations = {
     emailPlaceholder: 'email@example.com',
     password: 'Passwort',
     passwordPlaceholder: 'Mindestens 7 Zeichen',
+    cardNumber: 'Kartennummer',
+    cardPlaceholder: '1234 5678 9012 3456',
+    expiryDate: 'Ablaufdatum',
+    expiryPlaceholder: 'MM/JJ',
+    cvv: 'CVV',
+    cvvPlaceholder: '123',
     signUp: 'Registrieren',
     haveAccount: 'Haben Sie bereits ein Konto?',
     login: 'Anmelden',
@@ -93,6 +135,9 @@ const translations = {
     nameRequired: 'Name ist erforderlich',
     emailRequired: 'E-Mail ist erforderlich',
     passwordTooShort: 'Passwort muss mindestens 7 Zeichen lang sein',
+    invalidCard: 'Kartennummer muss 16 Ziffern enthalten',
+    invalidExpiry: 'Ungültiges Ablaufdatum',
+    invalidCvv: 'CVV muss 3 Ziffern enthalten',
   },
   fr: {
     createAccount: 'Créer un Compte',
@@ -103,6 +148,12 @@ const translations = {
     emailPlaceholder: 'email@example.com',
     password: 'Mot de passe',
     passwordPlaceholder: 'Minimum 7 caractères',
+    cardNumber: 'Numéro de Carte',
+    cardPlaceholder: '1234 5678 9012 3456',
+    expiryDate: 'Date d\'Expiration',
+    expiryPlaceholder: 'MM/AA',
+    cvv: 'CVV',
+    cvvPlaceholder: '123',
     signUp: 'S\'inscrire',
     haveAccount: 'Vous avez déjà un compte?',
     login: 'Se connecter',
@@ -110,6 +161,9 @@ const translations = {
     nameRequired: 'Le nom est requis',
     emailRequired: 'L\'email est requis',
     passwordTooShort: 'Le mot de passe doit contenir au moins 7 caractères',
+    invalidCard: 'Le numéro de carte doit contenir 16 chiffres',
+    invalidExpiry: 'Date d\'expiration invalide',
+    invalidCvv: 'CVV doit contenir 3 chiffres',
   },
   es: {
     createAccount: 'Crear Cuenta',
@@ -120,6 +174,12 @@ const translations = {
     emailPlaceholder: 'email@example.com',
     password: 'Contraseña',
     passwordPlaceholder: 'Mínimo 7 caracteres',
+    cardNumber: 'Número de Tarjeta',
+    cardPlaceholder: '1234 5678 9012 3456',
+    expiryDate: 'Fecha de Vencimiento',
+    expiryPlaceholder: 'MM/AA',
+    cvv: 'CVV',
+    cvvPlaceholder: '123',
     signUp: 'Registrarse',
     haveAccount: '¿Ya tienes cuenta?',
     login: 'Iniciar Sesión',
@@ -127,6 +187,9 @@ const translations = {
     nameRequired: 'El nombre es requerido',
     emailRequired: 'El email es requerido',
     passwordTooShort: 'La contraseña debe tener al menos 7 caracteres',
+    invalidCard: 'El número de tarjeta debe tener 16 dígitos',
+    invalidExpiry: 'Fecha de vencimiento inválida',
+    invalidCvv: 'CVV debe tener 3 dígitos',
   },
   ar: {
     createAccount: 'إنشاء حساب',
@@ -137,6 +200,12 @@ const translations = {
     emailPlaceholder: 'email@example.com',
     password: 'كلمة المرور',
     passwordPlaceholder: 'الحد الأدنى 7 أحرف',
+    cardNumber: 'رقم البطاقة',
+    cardPlaceholder: '1234 5678 9012 3456',
+    expiryDate: 'تاريخ الانتهاء',
+    expiryPlaceholder: 'شهر/سنة',
+    cvv: 'CVV',
+    cvvPlaceholder: '123',
     signUp: 'إنشاء حساب',
     haveAccount: 'هل لديك حساب بالفعل؟',
     login: 'تسجيل الدخول',
@@ -144,6 +213,9 @@ const translations = {
     nameRequired: 'الاسم مطلوب',
     emailRequired: 'البريد الإلكتروني مطلوب',
     passwordTooShort: 'يجب أن تكون كلمة المرور 7 أحرف على الأقل',
+    invalidCard: 'يجب أن يكون رقم البطاقة 16 رقمًا',
+    invalidExpiry: 'تاريخ انتهاء غير صالح',
+    invalidCvv: 'يجب أن يكون CVV 3 أرقام',
   },
 };
 
@@ -152,6 +224,9 @@ export function SignUp({ language, onSignUp, onSwitchToLogin }: SignUpProps) {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [cardNumber, setCardNumber] = useState('');
+  const [expiryDate, setExpiryDate] = useState('');
+  const [cvv, setCvv] = useState('');
   const [error, setError] = useState('');
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -171,8 +246,27 @@ export function SignUp({ language, onSignUp, onSwitchToLogin }: SignUpProps) {
       setError(t.passwordTooShort);
       return;
     }
+    
+    // Card validation
+    if (cardNumber.replace(/\s/g, '').length !== 16) {
+      setError(t.invalidCard);
+      return;
+    }
+    
+    // Expiry date validation (MM/YY format)
+    const expiryRegex = /^(0[1-9]|1[0-2])\/\d{2}$/;
+    if (!expiryRegex.test(expiryDate)) {
+      setError(t.invalidExpiry);
+      return;
+    }
+    
+    // CVV validation
+    if (cvv.length !== 3 || !/^\d{3}$/.test(cvv)) {
+      setError(t.invalidCvv);
+      return;
+    }
 
-    onSignUp(name, email);
+    onSignUp(name, email, cardNumber);
   };
 
   return (
@@ -240,6 +334,76 @@ export function SignUp({ language, onSignUp, onSwitchToLogin }: SignUpProps) {
               <div className="mt-2 flex items-start gap-2 text-xs text-gray-500 bg-gray-50 p-3 rounded-lg">
                 <AlertCircle size={16} className="flex-shrink-0 mt-0.5" />
                 <span>{t.passwordRequirement}</span>
+              </div>
+            </div>
+
+            {/* Card Number */}
+            <div>
+              <label className="text-sm text-gray-700 mb-2 block flex items-center gap-2">
+                <CreditCard size={16} />
+                {t.cardNumber}
+              </label>
+              <input
+                type="text"
+                value={cardNumber}
+                onChange={(e) => {
+                  const value = e.target.value.replace(/\s/g, '').replace(/\D/g, '');
+                  if (value.length <= 16) {
+                    const formatted = value.match(/.{1,4}/g)?.join(' ') || value;
+                    setCardNumber(formatted);
+                  }
+                }}
+                placeholder={t.cardPlaceholder}
+                className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-600 focus:border-transparent transition-all"
+                required
+                maxLength={19}
+              />
+            </div>
+
+            {/* Expiry Date and CVV */}
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-sm text-gray-700 mb-2 block flex items-center gap-2">
+                  <Clock size={16} />
+                  {t.expiryDate}
+                </label>
+                <input
+                  type="text"
+                  value={expiryDate}
+                  onChange={(e) => {
+                    let value = e.target.value.replace(/\D/g, '');
+                    if (value.length >= 2) {
+                      value = value.slice(0, 2) + '/' + value.slice(2, 4);
+                    }
+                    if (value.length <= 5) {
+                      setExpiryDate(value);
+                    }
+                  }}
+                  placeholder={t.expiryPlaceholder}
+                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-600 focus:border-transparent transition-all"
+                  required
+                  maxLength={5}
+                />
+              </div>
+              <div>
+                <label className="text-sm text-gray-700 mb-2 block flex items-center gap-2">
+                  <Lock size={16} />
+                  {t.cvv}
+                </label>
+                <input
+                  type="text"
+                  value={cvv}
+                  onChange={(e) => {
+                    const value = e.target.value.replace(/\D/g, '');
+                    if (value.length <= 3) {
+                      setCvv(value);
+                    }
+                  }}
+                  placeholder={t.cvvPlaceholder}
+                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-600 focus:border-transparent transition-all"
+                  required
+                  maxLength={3}
+                />
               </div>
             </div>
 
